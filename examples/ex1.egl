@@ -1,0 +1,4 @@
+policy my_policy(pre, post):
+  forbid: hate_speech, discrimination
+  redact: sensitive_info
+end
