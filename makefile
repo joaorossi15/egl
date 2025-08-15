@@ -1,7 +1,10 @@
 TARGET := egl
 
 CC      := gcc
-CFLAGS  := -Wall -Wextra -std=c11 -Iinclude
+CFLAGS  := -Wall -Wextra -std=c11 \
+           -Iinclude \
+           -Isrc/lex \
+           -Isrc/parser
 LDFLAGS := 
 
 SRC := $(shell find src -name '*.c')

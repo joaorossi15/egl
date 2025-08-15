@@ -10,12 +10,11 @@ typedef enum {
   REDACT,     // redact keyword
   TEXT,       // text keyword
   APPEND,     // append keyword
-  STRING,     // strings for policy definition
   COMMA,      // ','
   L_PAR,      // '('
   R_PAR,      // ')'
   IDENTIFIER, // identifier for params and func names
-  EQUALS,     // '='
+  EQUALS,     // ':'
   ILLEGAL     //
 } TokenType;
 

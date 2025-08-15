@@ -1,4 +1,7 @@
+#include "helpers/print.h"
 #include "lex/lexer.h"
+#include "parser/parser.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -34,7 +37,7 @@ char *read_file(const char *path) {
   }
 
   size_t n = fread(buf, 1, size, f);
-  if (n != size) {
+  if ((int)n != size) {
     free(buf);
     fclose(f);
     return NULL;
@@ -72,7 +75,7 @@ const char *token_type_to_string(TokenType type) {
   case EQUALS:
     return "EQUALS";
   case ENDOF:
-    return "EOF";
+    return "ENDOF";
   default:
     return "UNKNOWN";
   }
@@ -94,13 +97,21 @@ int main(int argc, char **argv) {
   Lexer l;
   Token tk;
   init_lex(&l, buf);
-
+  Token tks[100];
+  int i = 0;
   do {
     tk = new_token(&l);
-    printf("TOKEN: %s ('%.*s') \n", token_type_to_string(tk.type), tk.len,
-           tk.start ? tk.start : "");
+    tks[i] = tk;
+    i++;
   } while (tk.type != ENDOF);
 
+  Parser p = {0};
+  Program prog = {0};
+  parse_program(&prog, &p, tks, i);
+
+  dump_Program(&prog);
+
+  free_program(&prog);
   free(buf);
   return 0;
 }
