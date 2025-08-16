@@ -91,16 +91,15 @@ static void dump_Identifier(const Identifier *id, int depth,
   printf("}\n");
 }
 
-/* If your id lists are NULL-terminated: ids[i] == NULL ends the list */
-static void dump_IdPtrList_NT(Identifier **ids, int depth, const char *label) {
+/* flat Identifier array with count */
+static void dump_IdArray(const Identifier *ids, int n, int depth,
+                         const char *label) {
   indent(depth);
-  printf("%s[\n", label);
-  if (ids) {
-    for (int i = 0; ids[i]; i++) {
-      indent(depth + 1);
-      printf("#%d @%p\n", i, (void *)ids[i]);
-      dump_Identifier(ids[i], depth + 2, "id=");
-    }
+  printf("%s(len=%d) [\n", label, n);
+  for (int i = 0; i < n; ++i) {
+    indent(depth + 1);
+    printf("#%d @%p\n", i, (const void *)&ids[i]);
+    dump_Identifier(&ids[i], depth + 2, "id=");
   }
   indent(depth);
   printf("]\n");
@@ -112,6 +111,7 @@ static void dump_Node(const Node *n, int depth, const char *label) {
     printf("%sNULL\n", label);
     return;
   }
+
   indent(depth);
   printf("%s{\n", label);
   indent(depth + 1);
@@ -120,20 +120,22 @@ static void dump_Node(const Node *n, int depth, const char *label) {
 
   switch (n->tag) {
   case N_FORBID:
-    dump_IdPtrList_NT(n->forbid.ids, depth + 1, "forbid.ids=");
+    dump_IdArray(n->forbid.ids, n->num_ids, depth + 1, "forbid.ids=");
     break;
+
   case N_REDACT:
-    dump_IdPtrList_NT(n->redact.ids, depth + 1, "redact.ids=");
+    dump_IdArray(n->redact.ids, n->num_ids, depth + 1, "redact.ids=");
     break;
+
   case N_APPEND: {
-    dump_IdPtrList_NT(n->append.ids, depth + 1, "append.ids=");
+    dump_IdArray(n->append.ids, n->num_ids, depth + 1, "append.ids=");
     const char *txt =
         (n->append.text && *n->append.text) ? *n->append.text : NULL;
     indent(depth + 1);
     printf("append.text_ptr=%p, text=",
            (void *)(n->append.text ? *n->append.text : NULL));
     if (txt) {
-      /* append.text is a NUL-terminated C string */
+      /* print C string with escapes */
       fputc('"', stdout);
       for (const unsigned char *p = (const unsigned char *)txt; *p; ++p) {
         unsigned char c = *p;
@@ -167,8 +169,9 @@ static void dump_Node(const Node *n, int depth, const char *label) {
     }
     break;
   }
+
   default:
-    /* other tags not carrying union members here */
+    /* other tags: nothing additional in union */
     break;
   }
 
@@ -182,17 +185,19 @@ static void dump_Policy(const Policy *pl, int depth, const char *label) {
     printf("%sNULL\n", label);
     return;
   }
+
   indent(depth);
   printf("%s{\n", label);
   dump_Identifier(&pl->name, depth + 1, "name=");
   indent(depth + 1);
   printf("nparams=%d\n", pl->nparams);
-  for (int i = 0; i < pl->nparams; i++) {
+  for (int i = 0; i < pl->nparams; ++i) {
     dump_Identifier(&pl->params[i], depth + 1, "param=");
   }
-  dump_Node(pl->forbid, depth + 1, "forbid=");
-  dump_Node(pl->redact, depth + 1, "redact=");
-  dump_Node(pl->append, depth + 1, "append=");
+  dump_Node(&pl->forbid, depth + 1,
+            "forbid="); /* embedded Node → pass address */
+  dump_Node(&pl->redact, depth + 1, "redact=");
+  dump_Node(&pl->append, depth + 1, "append=");
   indent(depth);
   printf("}\n");
 }
@@ -204,7 +209,7 @@ void dump_Program(const Program *pr) {
   }
   printf("Program{\n");
   printf("  count=%d, cap=%d, stms=%p\n", pr->count, pr->cap, (void *)pr->stms);
-  for (int i = 0; i < pr->count; i++) {
+  for (int i = 0; i < pr->count; ++i) {
     dump_Policy(&pr->stms[i], 1, "policy=");
   }
   printf("}\n");

@@ -21,19 +21,20 @@ typedef struct {
 typedef struct Node {
   Tag tag;
   Token tk;
+  int num_ids;
 
   union {
 
     struct {
-      Identifier **ids;
+      Identifier *ids;
     } forbid;
 
     struct {
-      Identifier **ids;
+      Identifier *ids;
     } redact;
 
     struct {
-      Identifier **ids;
+      Identifier *ids;
       char **text;
     } append;
   };
@@ -43,9 +44,9 @@ typedef struct {
   Identifier *params;
   int nparams;
   Identifier name;
-  Node *forbid;
-  Node *redact;
-  Node *append;
+  Node forbid;
+  Node redact;
+  Node append;
 } Policy;
 
 typedef struct {
@@ -61,10 +62,8 @@ typedef struct {
   int cap;
 } Program;
 
-Policy parse_policy(Parser *p, Token *tks);
 void init_parser(Parser *p, Token *tks, int len);
 void init_program(Program *p);
 void parse_program(Program *prog, Parser *p, Token *tks, int len);
 void free_program(Program *prog);
-
 #endif

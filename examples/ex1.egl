@@ -1,4 +1,3 @@
-policy my_policy(pre, post):
-  forbid: hate_speech, discrimination
-  redact: sensitive_info
+policy my_policy(pre):
+  forbid: hate_speech, abd, del
 end
