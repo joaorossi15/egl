@@ -15,6 +15,7 @@ typedef enum {
   R_PAR,      // ')'
   IDENTIFIER, // identifier for params and func names
   EQUALS,     // ':'
+  STR,        // '"'
   ILLEGAL     //
 } TokenType;
 

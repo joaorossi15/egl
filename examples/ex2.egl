@@ -1,5 +1,5 @@
 policy my_policy(pre):
   forbid: hate_speech, abd, del
   redact: stuff "abcd asas"
-  append: a "end"
+  append: a 
 end

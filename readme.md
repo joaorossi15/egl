@@ -9,8 +9,8 @@ This project is the **compiler front-end** for EGL, implemented in C, including 
 policy p1("pre", "post"):
   forbid: hate_speech
   refusal: discrimination
-  redact: personal_data
-  append: text: "Remember to be respectful."
+  redact: personal_data "***", names "---"
+  append: medical_rec "Remember to be respectful."
 end
 ```
 
@@ -28,5 +28,4 @@ Clean files with `make`:
 ## Execute
 Run EGL with a source file .egl:
 - `./egl path/to/source.egl`
-
 

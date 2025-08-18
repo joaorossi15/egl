@@ -9,7 +9,7 @@ static void indent(int n) {
     fputs("  ", stdout);
 }
 
-/* prints a string slice with escapes, without assuming NUL-termination */
+/* print a string slice with escapes, without assuming NUL-termination */
 static void print_escaped(const char *s, int len) {
   putchar('"');
   if (!s || len <= 0) {
@@ -44,7 +44,6 @@ static void print_escaped(const char *s, int len) {
   putchar('"');
 }
 
-/* optional: name your enums if you like; fallback prints integer */
 static const char *tag_name(Tag t) {
   switch (t) {
   case N_I:
@@ -91,7 +90,6 @@ static void dump_Identifier(const Identifier *id, int depth,
   printf("}\n");
 }
 
-/* flat Identifier array with count */
 static void dump_IdArray(const Identifier *ids, int n, int depth,
                          const char *label) {
   indent(depth);
@@ -100,6 +98,32 @@ static void dump_IdArray(const Identifier *ids, int n, int depth,
     indent(depth + 1);
     printf("#%d @%p\n", i, (const void *)&ids[i]);
     dump_Identifier(&ids[i], depth + 2, "id=");
+  }
+  indent(depth);
+  printf("]\n");
+}
+
+static void dump_Pair(const Pair *pr, int depth, const char *label) {
+  indent(depth);
+  if (!pr) {
+    printf("%sNULL\n", label);
+    return;
+  }
+  printf("%s{\n", label);
+  dump_Identifier(&pr->i, depth + 1, "i=");
+  dump_StrView(pr->value, depth + 1, "value=");
+  indent(depth);
+  printf("}\n");
+}
+
+static void dump_PairArray(const Pair *pairs, int n, int depth,
+                           const char *label) {
+  indent(depth);
+  printf("%s(len=%d) [\n", label, n);
+  for (int i = 0; i < n; ++i) {
+    indent(depth + 1);
+    printf("#%d @%p\n", i, (const void *)&pairs[i]);
+    dump_Pair(&pairs[i], depth + 2, "pair=");
   }
   indent(depth);
   printf("]\n");
@@ -120,58 +144,25 @@ static void dump_Node(const Node *n, int depth, const char *label) {
 
   switch (n->tag) {
   case N_FORBID:
+    indent(depth + 1);
+    printf("num_ids=%d\n", n->num_ids);
     dump_IdArray(n->forbid.ids, n->num_ids, depth + 1, "forbid.ids=");
     break;
 
   case N_REDACT:
-    dump_IdArray(n->redact.ids, n->num_ids, depth + 1, "redact.ids=");
+    indent(depth + 1);
+    printf("num_pairs=%d\n", n->num_ids);
+    dump_PairArray(n->pair, n->num_ids, depth + 1, "redact.pairs=");
     break;
 
-  case N_APPEND: {
-    dump_IdArray(n->append.ids, n->num_ids, depth + 1, "append.ids=");
-    const char *txt =
-        (n->append.text && *n->append.text) ? *n->append.text : NULL;
+  case N_APPEND:
     indent(depth + 1);
-    printf("append.text_ptr=%p, text=",
-           (void *)(n->append.text ? *n->append.text : NULL));
-    if (txt) {
-      /* print C string with escapes */
-      fputc('"', stdout);
-      for (const unsigned char *p = (const unsigned char *)txt; *p; ++p) {
-        unsigned char c = *p;
-        switch (c) {
-        case '\n':
-          fputs("\\n", stdout);
-          break;
-        case '\r':
-          fputs("\\r", stdout);
-          break;
-        case '\t':
-          fputs("\\t", stdout);
-          break;
-        case '\\':
-          fputs("\\\\", stdout);
-          break;
-        case '"':
-          fputs("\\\"", stdout);
-          break;
-        default:
-          if (c >= 32 && c < 127)
-            putchar(c);
-          else
-            printf("\\x%02X", c);
-        }
-      }
-      fputc('"', stdout);
-      fputc('\n', stdout);
-    } else {
-      printf("NULL\n");
-    }
+    printf("num_pairs=%d\n", n->num_ids);
+    dump_PairArray(n->pair, n->num_ids, depth + 1, "append.pairs=");
     break;
-  }
 
   default:
-    /* other tags: nothing additional in union */
+    /* nothing extra */
     break;
   }
 
@@ -191,11 +182,10 @@ static void dump_Policy(const Policy *pl, int depth, const char *label) {
   dump_Identifier(&pl->name, depth + 1, "name=");
   indent(depth + 1);
   printf("nparams=%d\n", pl->nparams);
-  for (int i = 0; i < pl->nparams; ++i) {
+  for (int i = 0; i < pl->nparams; ++i)
     dump_Identifier(&pl->params[i], depth + 1, "param=");
-  }
-  dump_Node(&pl->forbid, depth + 1,
-            "forbid="); /* embedded Node → pass address */
+
+  dump_Node(&pl->forbid, depth + 1, "forbid=");
   dump_Node(&pl->redact, depth + 1, "redact=");
   dump_Node(&pl->append, depth + 1, "append=");
   indent(depth);
@@ -209,8 +199,7 @@ void dump_Program(const Program *pr) {
   }
   printf("Program{\n");
   printf("  count=%d, cap=%d, stms=%p\n", pr->count, pr->cap, (void *)pr->stms);
-  for (int i = 0; i < pr->count; ++i) {
+  for (int i = 0; i < pr->count; ++i)
     dump_Policy(&pr->stms[i], 1, "policy=");
-  }
   printf("}\n");
 }

@@ -76,6 +76,8 @@ const char *token_type_to_string(TokenType type) {
     return "EQUALS";
   case ENDOF:
     return "ENDOF";
+  case STR:
+    return "STR";
   default:
     return "UNKNOWN";
   }
@@ -103,15 +105,24 @@ int main(int argc, char **argv) {
     tk = new_token(&l);
     tks[i] = tk;
     i++;
+    // printf("TOKEN: %s ('%.*s') \n", token_type_to_string(tk.type), tk.len,
+    // tk.start ? tk.start : "");
   } while (tk.type != ENDOF);
 
   Parser p = {0};
   Program prog = {0};
   parse_program(&prog, &p, tks, i);
-
-  dump_Program(&prog);
+  if (p.e_count != 0) {
+    for (int i = 0; i < p.e_count; i++) {
+      if (p.errors[i])
+        fprintf(stderr, "%s\n", p.errors[i]);
+    }
+  } else {
+    dump_Program(&prog);
+  }
 
   free_program(&prog);
   free(buf);
+
   return 0;
 }

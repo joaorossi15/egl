@@ -1,10 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include "lexer.h"
-// AST node for each type
-// AST base
-//
-//
 
 typedef enum { N_I, N_POLICY, N_FORBID, N_REDACT, N_TEXT, N_APPEND } Tag;
 
@@ -18,25 +14,24 @@ typedef struct {
   StrView value;
 } Identifier;
 
+typedef struct {
+  Identifier i;
+  StrView value;
+} Pair;
+
 typedef struct Node {
   Tag tag;
   Token tk;
   int num_ids;
 
   union {
-
     struct {
       Identifier *ids;
     } forbid;
 
     struct {
-      Identifier *ids;
-    } redact;
-
-    struct {
-      Identifier *ids;
-      char **text;
-    } append;
+      Pair *pair;
+    };
   };
 } Node;
 
@@ -54,6 +49,8 @@ typedef struct {
   Token cur_tk;
   Token peek_tk;
   int tks_len;
+  char *errors[128];
+  int e_count;
 } Parser;
 
 typedef struct {
@@ -66,4 +63,5 @@ void init_parser(Parser *p, Token *tks, int len);
 void init_program(Program *p);
 void parse_program(Program *prog, Parser *p, Token *tks, int len);
 void free_program(Program *prog);
+void free_parser(Parser *p);
 #endif

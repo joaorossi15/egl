@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <stdio.h>
 #include <string.h>
 
 Keyword kws[] = {{"policy", POLICY}, {"end", END},       {"refusal", REFUSAL},
@@ -39,6 +40,20 @@ void init_lex(Lexer *l, const char *input) {
   l->c = 0;
   l->len = strlen(l->input);
   lexer_read(l);
+}
+
+Token construct_str(Lexer *l) {
+  lexer_read(l);
+  const char *start = &l->input[l->pos];
+  int len = 0;
+
+  while (l->c != '"') {
+    lexer_read(l);
+    len++;
+  }
+
+  lexer_read(l);
+  return (Token){.start = start, .len = len, .type = STR};
 }
 
 Token construct_lex(Lexer *l) {
@@ -84,6 +99,9 @@ Token new_token(Lexer *l) {
     tk.len = 1;
     tk.type = EQUALS;
     lexer_read(l);
+    break;
+  case '"':
+    tk = construct_str(l);
     break;
   case 0:
     tk.start = NULL;
