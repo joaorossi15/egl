@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-Keyword kws[] = {{"policy", POLICY}, {"end", END},       {"refusal", REFUSAL},
-                 {"append", APPEND}, {"redact", REDACT}, {"forbid", FORBID},
-                 {"text", TEXT},     {NULL, 0}};
+Keyword kws[] = {{"policy", POLICY}, {"end", END},       {"append", APPEND},
+                 {"redact", REDACT}, {"forbid", FORBID}, {"pre", PRE},
+                 {"post", POST},     {NULL, 0}};
 
 TokenType lookup_kws(const char *start, size_t len) {
   for (int i = 0; kws[i].name != NULL; i++) {

@@ -1,12 +1,10 @@
 # EGL - Ethical Guardrail Language
 
-A simple and easy to learn domain specific-language for ethical guardrails related to fairness and non-maleficence for AI conversations.
-
-This project is the **compiler front-end** for EGL, implemented in C, including a **lexer**, **parser**, and **executor** (in progress).
+A simple domain specific-language for ethical guardrails related to modular ethical principles for AI conversations (working with fairness and non-maleficence at the moment).
 
 ## Example EGL Syntax
 ```egl
-policy p1("pre", "post"):
+policy p1(pre, post):
   forbid: hate_speech
   refusal: discrimination
   redact: personal_data "***", names "---"

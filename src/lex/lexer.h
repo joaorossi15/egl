@@ -10,6 +10,8 @@ typedef enum {
   REDACT,     // redact keyword
   TEXT,       // text keyword
   APPEND,     // append keyword
+  PRE,        // pre keyword
+  POST,       // post keyword
   COMMA,      // ','
   L_PAR,      // '('
   R_PAR,      // ')'
