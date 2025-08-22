@@ -90,25 +90,25 @@ void free_program(Program *prog) {
 }
 
 static int parse_params(Parser *p, Policy *pol, Token *tks) {
-  if (p->peek_tk.type != IDENTIFIER) {
+  if ((p->peek_tk.type != PRE) && (p->peek_tk.type != POST)) {
     return -1;
   }
 
   pol->params = malloc(2 * sizeof *pol->params);
   pol->nparams = 0;
 
-  Identifier id = {.tk = p->peek_tk, .value = sv_from_token(&p->peek_tk)};
+  Param id = {.tk = p->peek_tk, .value = sv_from_token(&p->peek_tk)};
   pol->params[pol->nparams++] = id;
   next_token(p, tks);
 
   if (p->peek_tk.type == COMMA) {
     next_token(p, tks);
 
-    if (p->peek_tk.type != IDENTIFIER) {
+    if ((p->peek_tk.type != PRE) && (p->peek_tk.type != POST)) {
       return -1;
     }
 
-    Identifier id2 = {.tk = p->peek_tk, .value = sv_from_token(&p->peek_tk)};
+    Param id2 = {.tk = p->peek_tk, .value = sv_from_token(&p->peek_tk)};
     pol->params[pol->nparams++] = id2;
     next_token(p, tks);
   }

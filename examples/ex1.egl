@@ -1,4 +1,4 @@
-policy my_policy(pre):
+policy my_policy(pre, post):
   forbid: hate_speech, abd, del
   redact: stuff "abcd asas"
   append: a "end"

@@ -19,6 +19,11 @@ typedef struct {
   StrView value;
 } Pair;
 
+typedef struct {
+  Token tk;
+  StrView value;
+} Param;
+
 typedef struct Node {
   Tag tag;
   Token tk;
@@ -36,7 +41,7 @@ typedef struct Node {
 } Node;
 
 typedef struct {
-  Identifier *params;
+  Param *params;
   int nparams;
   Identifier name;
   Node forbid;

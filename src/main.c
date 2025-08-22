@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "%s\n", p.errors[i]);
     }
   } else {
-    dump_Program(&prog);
+    dump_program(&prog);
   }
 
   free_program(&prog);

@@ -1,15 +1,11 @@
 #include "parser.h"
-#include <ctype.h>
 #include <stdio.h>
-
-/* ---------- helpers ---------- */
 
 static void indent(int n) {
   while (n--)
     fputs("  ", stdout);
 }
 
-/* print a string slice with escapes, without assuming NUL-termination */
 static void print_escaped(const char *s, int len) {
   putchar('"');
   if (!s || len <= 0) {
@@ -63,16 +59,14 @@ static const char *tag_name(Tag t) {
   }
 }
 
-/* ---------- dumps for your structs ---------- */
-
-static void dump_StrView(StrView s, int depth, const char *label) {
+static void dump_strview(StrView s, int depth, const char *label) {
   indent(depth);
   printf("%s{ ptr=%p, len=%d, text=", label, (void *)s.ptr, s.len);
   print_escaped(s.ptr, s.len);
   printf(" }\n");
 }
 
-static void dump_Token(Token t, int depth, const char *label) {
+static void dump_token(Token t, int depth, const char *label) {
   indent(depth);
   printf("%s{ type=%d, start=%p, len=%d, text=", label, (int)t.type,
          (void *)t.start, t.len);
@@ -80,56 +74,65 @@ static void dump_Token(Token t, int depth, const char *label) {
   printf(" }\n");
 }
 
-static void dump_Identifier(const Identifier *id, int depth,
+static void dump_identifier(const Identifier *id, int depth,
                             const char *label) {
   indent(depth);
   printf("%s{\n", label);
-  dump_Token(id->tk, depth + 1, "tk=");
-  dump_StrView(id->value, depth + 1, "value=");
+  dump_token(id->tk, depth + 1, "tk=");
+  dump_strview(id->value, depth + 1, "value=");
   indent(depth);
   printf("}\n");
 }
 
-static void dump_IdArray(const Identifier *ids, int n, int depth,
-                         const char *label) {
+static void dump_param(const Param *id, int depth, const char *label) {
+  indent(depth);
+  printf("%s{\n", label);
+  dump_token(id->tk, depth + 1, "tk=");
+  dump_strview(id->value, depth + 1, "value=");
+  indent(depth);
+  printf("}\n");
+}
+
+static void dump_id_array(const Identifier *ids, int n, int depth,
+                          const char *label) {
   indent(depth);
   printf("%s(len=%d) [\n", label, n);
   for (int i = 0; i < n; ++i) {
     indent(depth + 1);
     printf("#%d @%p\n", i, (const void *)&ids[i]);
-    dump_Identifier(&ids[i], depth + 2, "id=");
+    dump_identifier(&ids[i], depth + 2, "id=");
   }
   indent(depth);
   printf("]\n");
 }
 
-static void dump_Pair(const Pair *pr, int depth, const char *label) {
+static void dump_pair(const Pair *pr, int depth, const char *label) {
   indent(depth);
   if (!pr) {
     printf("%sNULL\n", label);
     return;
   }
   printf("%s{\n", label);
-  dump_Identifier(&pr->i, depth + 1, "i=");
-  dump_StrView(pr->value, depth + 1, "value=");
+  dump_identifier(&pr->i, depth + 1, "i=");
+  dump_strview(pr->value, depth + 1, "value=");
   indent(depth);
   printf("}\n");
 }
 
-static void dump_PairArray(const Pair *pairs, int n, int depth,
-                           const char *label) {
+static void dump_pair_array(const Pair *pairs, int n, int depth,
+                            const char *label) {
   indent(depth);
   printf("%s(len=%d) [\n", label, n);
   for (int i = 0; i < n; ++i) {
     indent(depth + 1);
     printf("#%d @%p\n", i, (const void *)&pairs[i]);
-    dump_Pair(&pairs[i], depth + 2, "pair=");
+    dump_pair(&pairs[i], depth + 2, "pair=");
   }
   indent(depth);
   printf("]\n");
 }
 
-static void dump_Node(const Node *n, int depth, const char *label) {
+static void dump_node(const Node *n, int depth, const char *label) {
   if (!n) {
     indent(depth);
     printf("%sNULL\n", label);
@@ -140,25 +143,25 @@ static void dump_Node(const Node *n, int depth, const char *label) {
   printf("%s{\n", label);
   indent(depth + 1);
   printf("tag=%s\n", tag_name(n->tag));
-  dump_Token(n->tk, depth + 1, "tk=");
+  dump_token(n->tk, depth + 1, "tk=");
 
   switch (n->tag) {
   case N_FORBID:
     indent(depth + 1);
     printf("num_ids=%d\n", n->num_ids);
-    dump_IdArray(n->forbid.ids, n->num_ids, depth + 1, "forbid.ids=");
+    dump_id_array(n->forbid.ids, n->num_ids, depth + 1, "forbid.ids=");
     break;
 
   case N_REDACT:
     indent(depth + 1);
     printf("num_pairs=%d\n", n->num_ids);
-    dump_PairArray(n->pair, n->num_ids, depth + 1, "redact.pairs=");
+    dump_pair_array(n->pair, n->num_ids, depth + 1, "redact.pairs=");
     break;
 
   case N_APPEND:
     indent(depth + 1);
     printf("num_pairs=%d\n", n->num_ids);
-    dump_PairArray(n->pair, n->num_ids, depth + 1, "append.pairs=");
+    dump_pair_array(n->pair, n->num_ids, depth + 1, "append.pairs=");
     break;
 
   default:
@@ -170,7 +173,7 @@ static void dump_Node(const Node *n, int depth, const char *label) {
   printf("}\n");
 }
 
-static void dump_Policy(const Policy *pl, int depth, const char *label) {
+static void dump_policy(const Policy *pl, int depth, const char *label) {
   if (!pl) {
     indent(depth);
     printf("%sNULL\n", label);
@@ -179,20 +182,20 @@ static void dump_Policy(const Policy *pl, int depth, const char *label) {
 
   indent(depth);
   printf("%s{\n", label);
-  dump_Identifier(&pl->name, depth + 1, "name=");
+  dump_identifier(&pl->name, depth + 1, "name=");
   indent(depth + 1);
   printf("nparams=%d\n", pl->nparams);
   for (int i = 0; i < pl->nparams; ++i)
-    dump_Identifier(&pl->params[i], depth + 1, "param=");
+    dump_param(&pl->params[i], depth + 1, "param=");
 
-  dump_Node(&pl->forbid, depth + 1, "forbid=");
-  dump_Node(&pl->redact, depth + 1, "redact=");
-  dump_Node(&pl->append, depth + 1, "append=");
+  dump_node(&pl->forbid, depth + 1, "forbid=");
+  dump_node(&pl->redact, depth + 1, "redact=");
+  dump_node(&pl->append, depth + 1, "append=");
   indent(depth);
   printf("}\n");
 }
 
-void dump_Program(const Program *pr) {
+void dump_program(const Program *pr) {
   if (!pr) {
     printf("Program=NULL\n");
     return;
@@ -200,6 +203,6 @@ void dump_Program(const Program *pr) {
   printf("Program{\n");
   printf("  count=%d, cap=%d, stms=%p\n", pr->count, pr->cap, (void *)pr->stms);
   for (int i = 0; i < pr->count; ++i)
-    dump_Policy(&pr->stms[i], 1, "policy=");
+    dump_policy(&pr->stms[i], 1, "policy=");
   printf("}\n");
 }
