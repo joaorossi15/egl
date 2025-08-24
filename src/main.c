@@ -114,8 +114,9 @@ int main(int argc, char **argv) {
   parse_program(&prog, &p, tks, i);
   if (p.e_count != 0) {
     for (int i = 0; i < p.e_count; i++) {
-      if (p.errors[i])
+      if (p.errors[i]) {
         fprintf(stderr, "%s\n", p.errors[i]);
+      }
     }
   } else {
     dump_program(&prog);

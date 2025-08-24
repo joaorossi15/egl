@@ -58,8 +58,9 @@ void parse_program(Program *prog, Parser *p, Token *tks, int len) {
 }
 
 static void free_node(Node *n) {
-  if (!n)
+  if (!n) {
     return;
+  }
   switch (n->tag) {
   case N_FORBID:
     free(n->forbid.ids);
@@ -81,8 +82,9 @@ static void free_policy(Policy *pol) {
 }
 
 void free_program(Program *prog) {
-  if (!prog)
+  if (!prog) {
     return;
+  }
   for (int i = 0; i < prog->count; ++i) {
     free_policy(&prog->stms[i]);
   }
@@ -153,8 +155,9 @@ static Policy parse_policy(Parser *p, Token *tks) {
   while (p->cur_tk.type != END && p->cur_tk.type != ENDOF) {
     next_token(p, tks);
 
-    if (p->cur_tk.type == END || p->cur_tk.type == ENDOF)
+    if (p->cur_tk.type == END || p->cur_tk.type == ENDOF) {
       break;
+    }
 
     Node n = parse_node(p, tks);
     switch (n.tag) {

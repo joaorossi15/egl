@@ -2,8 +2,9 @@
 #include <stdio.h>
 
 static void indent(int n) {
-  while (n--)
+  while (n--) {
     fputs("  ", stdout);
+  }
 }
 
 static void print_escaped(const char *s, int len) {
@@ -31,10 +32,11 @@ static void print_escaped(const char *s, int len) {
       fputs("\\\"", stdout);
       break;
     default:
-      if (c >= 32 && c < 127)
+      if (c >= 32 && c < 127) {
         putchar(c);
-      else
+      } else {
         printf("\\x%02X", c);
+      }
     }
   }
   putchar('"');
@@ -185,8 +187,9 @@ static void dump_policy(const Policy *pl, int depth, const char *label) {
   dump_identifier(&pl->name, depth + 1, "name=");
   indent(depth + 1);
   printf("nparams=%d\n", pl->nparams);
-  for (int i = 0; i < pl->nparams; ++i)
+  for (int i = 0; i < pl->nparams; ++i) {
     dump_param(&pl->params[i], depth + 1, "param=");
+  }
 
   dump_node(&pl->forbid, depth + 1, "forbid=");
   dump_node(&pl->redact, depth + 1, "redact=");
@@ -202,7 +205,8 @@ void dump_program(const Program *pr) {
   }
   printf("Program{\n");
   printf("  count=%d, cap=%d, stms=%p\n", pr->count, pr->cap, (void *)pr->stms);
-  for (int i = 0; i < pr->count; ++i)
+  for (int i = 0; i < pr->count; ++i) {
     dump_policy(&pr->stms[i], 1, "policy=");
+  }
   printf("}\n");
 }
