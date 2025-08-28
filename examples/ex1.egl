@@ -1,5 +1,5 @@
 policy my_policy(post):
-  forbid: hate_speech, abd, del
-  redact: stuff "abcd asas"
-  append: a "end"
+  forbid: non_diversity
+  redact: medical_risk "abcd asas"
+  append: medical_risk "a"
 end

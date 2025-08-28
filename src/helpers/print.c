@@ -1,5 +1,6 @@
 #include "parser.h"
 #include <stdio.h>
+#include <string.h>
 
 static void indent(int n) {
   while (n--) {
@@ -209,4 +210,17 @@ void dump_program(const Program *pr) {
     dump_policy(&pr->stms[i], 1, "policy=");
   }
   printf("}\n");
+}
+
+char *long_to_binary(unsigned long k)
+
+{
+  static char c[65];
+  c[0] = '\0';
+
+  unsigned long val;
+  for (val = 1UL << (sizeof(unsigned long) * 8 - 1); val > 0; val >>= 1) {
+    strcat(c, ((k & val) == val) ? "1" : "0");
+  }
+  return c;
 }

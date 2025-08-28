@@ -1,3 +1,4 @@
+#include "eval/eval.h"
 #include "helpers/print.h"
 #include "lex/lexer.h"
 #include "parser/parser.h"
@@ -118,9 +119,18 @@ int main(int argc, char **argv) {
         fprintf(stderr, "%s\n", p.errors[i]);
       }
     }
-  } else {
-    dump_program(&prog);
   }
+  // else {
+  //   dump_program(&prog);
+  // }
+
+  PolicyRunTime prt = {0};
+
+  compile_policy(&prog, &prt);
+
+  printf("FORBID_BITMASK: %s\n", long_to_binary(prt.forbid_bitmask));
+  printf("REDACT_BITMASK: %s\n", long_to_binary(prt.redact_bitmask));
+  printf("APPEND_BITMASK: %s\n", long_to_binary(prt.append_bitmask));
 
   free_program(&prog);
   free(buf);

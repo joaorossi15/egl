@@ -191,13 +191,13 @@ static Node parse_node(Parser *p, Token *tks) {
   case REDACT:
     return parse_pair(p, tks, N_REDACT);
   default:
-    return (Node){0};
+    return (Node){1};
   }
 }
 
 // format -> redact: identifier "str", ...
 static Node parse_pair(Parser *p, Token *tks, Tag tag) {
-  Node n = {.tag = tag, .tk = p->peek_tk, .num_ids = 0};
+  Node n = {.tag = tag, .tk = p->cur_tk, .num_ids = 0};
   n.pair = NULL;
 
   // cur_tk = APPEND/REDACT, peek_tk = EQUALS
@@ -222,8 +222,8 @@ static Node parse_pair(Parser *p, Token *tks, Tag tag) {
   }
 
   next_token(p, tks);
-  n.pair[n.num_ids] = (Pair){.i = (Identifier){.tk = p->cur_tk},
-                             .value = sv_from_token(&p->cur_tk)};
+  n.pair[n.num_ids] = (Pair){
+      .i = (Identifier){.tk = p->cur_tk, .value = sv_from_token(&p->cur_tk)}};
 
   // cur_tk = id, peek_tk = str
   if (p->peek_tk.type != STR) {
@@ -257,8 +257,8 @@ static Node parse_pair(Parser *p, Token *tks, Tag tag) {
 
     next_token(p, tks);
     // cur_tk = id, peek_tk = str
-    n.pair[n.num_ids] = (Pair){.i = (Identifier){.tk = p->cur_tk},
-                               .value = sv_from_token(&p->cur_tk)};
+    n.pair[n.num_ids] = (Pair){
+        .i = (Identifier){.tk = p->cur_tk, .value = sv_from_token(&p->cur_tk)}};
     // parse str
 
     if (p->peek_tk.type != STR) {
