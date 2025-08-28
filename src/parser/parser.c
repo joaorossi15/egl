@@ -191,7 +191,7 @@ static Node parse_node(Parser *p, Token *tks) {
   case REDACT:
     return parse_pair(p, tks, N_REDACT);
   default:
-    return (Node){1};
+    return (Node){0};
   }
 }
 
