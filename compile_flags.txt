@@ -1,6 +1,7 @@
 -Iinclude
 -Isrc/lex
 -Isrc/parser
+-Isrc/runtime
 -std=c11
 -Wall
 -Wextra

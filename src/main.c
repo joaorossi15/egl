@@ -1,7 +1,7 @@
-#include "eval/eval.h"
 #include "helpers/print.h"
 #include "lex/lexer.h"
 #include "parser/parser.h"
+#include "runtime/runtime.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -126,7 +126,9 @@ int main(int argc, char **argv) {
 
   PolicyRunTime prt = {0};
 
-  compile_policy(&prog, &prt);
+  if (compile_policy(&prog, &prt) != 0) {
+    return -1;
+  }
 
   printf("FORBID_BITMASK: %s\n", long_to_binary(prt.forbid_bitmask));
   printf("REDACT_BITMASK: %s\n", long_to_binary(prt.redact_bitmask));

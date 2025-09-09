@@ -4,7 +4,8 @@ CC      := gcc
 CFLAGS  := -Wall -Wextra -std=c11 \
            -Iinclude \
            -Isrc/lex \
-           -Isrc/parser
+           -Isrc/parser \
+		   -Isrc/runtime
 LDFLAGS := 
 
 SRC := $(shell find src -name '*.c')
