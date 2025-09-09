@@ -5,8 +5,8 @@ A simple domain specific-language for ethical guardrails related to modular ethi
 ## Example EGL Syntax
 ```egl
 policy p1(pre, post):
-  forbid: non_inclusion
-  redact: bodily_harm "***", privacy "---"
+  forbid: hate_speech
+  redact: privacy "---"
   append: medical_risk "Remember to be respectful."
 end
 ```
