@@ -1,5 +1,3 @@
-policy my_policy(pr):
-  forbid: hate_speech, abd, del
-  redact: stuff "abcd asas"
-  append: a 
+policy my_policy(pre):
+  forbid: non_gender_neutral_wording, hate_speech
 end

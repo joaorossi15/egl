@@ -1,3 +1,4 @@
+#include "eval/eval.h"
 #include "helpers/print.h"
 #include "lex/lexer.h"
 #include "parser/parser.h"
@@ -130,9 +131,11 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  printf("FORBID_BITMASK: %s\n", long_to_binary(prt.forbid_bitmask));
-  printf("REDACT_BITMASK: %s\n", long_to_binary(prt.redact_bitmask));
-  printf("APPEND_BITMASK: %s\n", long_to_binary(prt.append_bitmask));
+  evaluate_rt_obj(&prt, "aaaaaa");
+
+  // printf("FORBID_BITMASK: %s\n", long_to_binary(prt.forbid_bitmask));
+  // printf("REDACT_BITMASK: %s\n", long_to_binary(prt.redact_bitmask));
+  // printf("APPEND_BITMASK: %s\n", long_to_binary(prt.append_bitmask));
 
   free_program(&prog);
   free(buf);
