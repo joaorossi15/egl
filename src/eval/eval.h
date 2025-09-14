@@ -5,6 +5,9 @@
 #include <stdint.h>
 
 #define TABLE_SIZE 32
+#define FORBID_FLAG 0
+#define REDACT_FLAG 1
+#define APPEND_FLAG 2
 
 typedef struct {
   uint32_t sc_hit_bitmask;
@@ -15,7 +18,7 @@ typedef struct {
 
 typedef struct {
   uint32_t mask_value;
-  int (*handler_t)(int, char[static 1]);
+  int (*handler_t)(int, PolicyRunTime *prt, char[static 1]);
 } TableEntry;
 
 int evaluate_rt_obj(PolicyRunTime *prt, char *input);
