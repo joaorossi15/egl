@@ -21,7 +21,6 @@ TableEntry table[32] = {
 };
 
 int evaluate_rt_obj(PolicyRunTime *prt, char input[static 1]) {
-  // call forbid function with bitmask
   if (prt->forbid_bitmask != 0) {
     for (int i = 0; i < TABLE_SIZE; i++) {
       if (prt->forbid_bitmask & table[i].mask_value) {
