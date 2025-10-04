@@ -111,7 +111,6 @@ int handler_em(int flag, int cat_id, PolicyRunTime *prt) {
       prt->buf[cur_len + 1 + app.len] = '\0';
     }
   }
-
   return OK;
 }
 
