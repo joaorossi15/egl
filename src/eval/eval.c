@@ -32,6 +32,10 @@ TableEntry table[32] = {
 int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
   if (!input)
     return ERROR;
+
+  memset(prt->counts, 0, sizeof prt->counts);
+  memset(prt->total_by_action, 0, sizeof prt->total_by_action);
+
   size_t len = strlen(input);
   size_t need = len + 1;
 

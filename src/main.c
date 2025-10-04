@@ -2,6 +2,7 @@
 #include "helpers/print.h"
 #include "lex/lexer.h"
 #include "parser/parser.h"
+#include "pragma/pragma.h"
 #include "runtime/runtime.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -98,6 +99,8 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  int debug_on = scan_debug_pragma(buf);
+
   Lexer l;
   Token tk;
   init_lex(&l, buf);
@@ -107,8 +110,6 @@ int main(int argc, char **argv) {
     tk = new_token(&l);
     tks[i] = tk;
     i++;
-    // printf("TOKEN: %s ('%.*s') \n", token_type_to_string(tk.type), tk.len,
-    // tk.start ? tk.start : "");
   } while (tk.type != ENDOF);
 
   Parser p = {0};
@@ -121,9 +122,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-  // else {
-  //   dump_program(&prog);
-  // }
 
   PolicyRunTime prt = {0};
 
@@ -132,14 +130,20 @@ int main(int argc, char **argv) {
   }
 
   int rc = evaluate_rt_obj(&prt, "email: test@test.com");
+
+  prt.debug = debug_on;
+
   if (rc == FORBID_VIOLATION) {
-    printf("Forbidden\n");
+    printf("FORBIDDEN OUTPUT\n");
+    print_debug_summary(&prt);
   } else if (rc == OK) {
-    printf("Result: %s\n", prt.buf);
+    printf("%s\n", prt.buf);
+    print_debug_summary(&prt);
   } else {
-    fprintf(stderr, "Error during evaluation\n");
+    fprintf(stderr, "EVAL ERROR\n");
   }
 
+  free(prt.buf);
   free_program(&prog);
   free(buf);
 

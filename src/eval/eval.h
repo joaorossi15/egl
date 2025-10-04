@@ -14,13 +14,6 @@
 #define FORBID_VIOLATION -2
 
 typedef struct {
-  uint32_t sc_hit_bitmask;
-  uint8_t forbid_total;
-  uint8_t redact_total;
-  uint8_t append_total;
-} Evaluated;
-
-typedef struct {
   uint32_t mask_value;
   int (*handler_t)(int, int, PolicyRunTime *);
 } TableEntry;

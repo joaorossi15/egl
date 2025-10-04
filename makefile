@@ -5,7 +5,9 @@ CFLAGS  := -Wall -Wextra -std=c11 \
            -Iinclude \
            -Isrc/lex \
            -Isrc/parser \
-		   -Isrc/runtime 
+		   -Isrc/runtime \
+		   -Isrc/eval \
+		   -Isrc/eval/eval-cat
 LDFLAGS := 
 
 SRC := $(shell find src -name '*.c')

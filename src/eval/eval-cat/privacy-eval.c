@@ -1,4 +1,5 @@
 #include "../eval.h"
+#include "helpers/helper.h"
 #include "parser.h"
 #include <ctype.h>
 #include <stdio.h>
@@ -11,10 +12,10 @@ static int ensure_cap(PolicyRunTime *prt, size_t need) {
   size_t cap = prt->buf_cap ? prt->buf_cap : 64;
   while (cap < need)
     cap *= 2;
-  char *nb = (char *)realloc(prt->buf, cap);
-  if (!nb)
+  char *new_block = (char *)realloc(prt->buf, cap);
+  if (!new_block)
     return 0;
-  prt->buf = nb;
+  prt->buf = new_block;
   prt->buf_cap = cap;
   return 1;
 }
@@ -73,6 +74,12 @@ int handler_em(int flag, int cat_id, PolicyRunTime *prt) {
     }
 
     found = 1;
+
+    int act = action_from_flag(flag);
+    if (act >= 0) {
+      prt->counts[act][cat_id] += 1;
+      prt->total_by_action[act] += 1;
+    }
 
     switch (flag) {
     case FORBID_FLAG:

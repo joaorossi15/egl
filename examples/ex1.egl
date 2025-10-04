@@ -1,3 +1,4 @@
+@debug
 policy my_policy(post):
-  redact: email "*"
+  forbid: email
 end

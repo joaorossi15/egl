@@ -56,8 +56,13 @@ typedef struct {
   StrView mask_redact[MAX_CATS];   // mask for redact
   StrView append_string[MAX_CATS]; // value to append
   short exec_type;
+
   char *buf;
   size_t buf_cap;
+  int debug;
+
+  int counts[3][MAX_CATS];
+  int total_by_action[3];
 } PolicyRunTime;
 
 int compile_policy(Program *p, PolicyRunTime *prt);

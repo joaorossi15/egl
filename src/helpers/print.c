@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "runtime.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -223,4 +224,63 @@ char *long_to_binary(unsigned long k)
     strcat(c, ((k & val) == val) ? "1" : "0");
   }
   return c;
+}
+
+static const char *cat_name(int id) {
+  switch (id) {
+  case 4:
+    return "non_gender_neutral_wording";
+  case 5:
+    return "exclusionary_terms";
+  case 18:
+    return "slurs";
+  case 19:
+    return "privacy";
+  case 20:
+    return "phone";
+  case 21:
+    return "email";
+  case 22:
+    return "address";
+  case 23:
+    return "ip";
+  case 24:
+    return "self_harm";
+  case 25:
+    return "dangerous_instructions";
+  case 27:
+    return "medical_risk";
+  default:
+    return "unknown";
+  }
+}
+
+static const char *act_label(int act) {
+  return (act == 0)   ? "forbid"
+         : (act == 1) ? "redact"
+         : (act == 2) ? "append"
+                      : "act?";
+}
+
+void print_debug_summary(const PolicyRunTime *prt) {
+  if (!prt->debug)
+    return;
+
+  for (int act = 0; act < 3; ++act) {
+    if (prt->total_by_action[act] == 0)
+      continue;
+
+    printf("%s: ", act_label(act));
+    int first = 1;
+    for (int id = 0; id < MAX_CATS; ++id) {
+      int n = prt->counts[act][id];
+      if (n > 0) {
+        if (!first)
+          printf(", ");
+        printf("%s (%d)", cat_name(id), n);
+        first = 0;
+      }
+    }
+    putchar('\n');
+  }
 }
