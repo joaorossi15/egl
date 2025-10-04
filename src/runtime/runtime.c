@@ -82,6 +82,10 @@ int extract_redact(Node *n, PolicyRunTime *prt) {
               n->pair[i].i.value.ptr);
       return -1;
     }
+    if (mask.len != 1) {
+      fprintf(stderr, "redact lenght cannot be less or greater than one\n");
+      return -1;
+    }
     prt->redact_bitmask |= cat_bit_from_id(id);
     prt->mask_redact[id] = mask;
   }

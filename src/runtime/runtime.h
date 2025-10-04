@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "stdint.h"
+#include <stddef.h>
 
 #define MAX_CATS 32
 
@@ -55,6 +56,8 @@ typedef struct {
   StrView mask_redact[MAX_CATS];   // mask for redact
   StrView append_string[MAX_CATS]; // value to append
   short exec_type;
+  char *buf;
+  size_t buf_cap;
 } PolicyRunTime;
 
 int compile_policy(Program *p, PolicyRunTime *prt);

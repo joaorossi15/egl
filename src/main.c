@@ -131,11 +131,14 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  evaluate_rt_obj(&prt, "aaaaaa");
-
-  // printf("FORBID_BITMASK: %s\n", long_to_binary(prt.forbid_bitmask));
-  // printf("REDACT_BITMASK: %s\n", long_to_binary(prt.redact_bitmask));
-  // printf("APPEND_BITMASK: %s\n", long_to_binary(prt.append_bitmask));
+  int rc = evaluate_rt_obj(&prt, "email: test@test.com");
+  if (rc == FORBID_VIOLATION) {
+    printf("Forbidden\n");
+  } else if (rc == OK) {
+    printf("Result: %s\n", prt.buf);
+  } else {
+    fprintf(stderr, "Error during evaluation\n");
+  }
 
   free_program(&prog);
   free(buf);

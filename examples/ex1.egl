@@ -1,5 +1,3 @@
 policy my_policy(post):
-  forbid: non_diversity, non_inclusion, non_equality, non_accessibility, discrimination, privacy, bodily_harm, medical_risk
-  redact: medical_risk "abcd asas", privacy "***"
-  append: medical_risk "a", discrimination "fuck you"
+  redact: email "*"
 end
