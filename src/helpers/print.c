@@ -228,28 +228,46 @@ char *long_to_binary(unsigned long k)
 
 static const char *cat_name(int id) {
   switch (id) {
-  case 4:
-    return "non_gender_neutral_wording";
-  case 5:
-    return "exclusionary_terms";
-  case 18:
-    return "slurs";
-  case 19:
+  // ---- Privacy
+  case 0:
     return "privacy";
-  case 20:
+  case 1:
+    return "personal_id";
+  case 2:
     return "phone";
-  case 21:
+  case 3:
     return "email";
-  case 22:
+  case 4:
     return "address";
-  case 23:
+  case 5:
+    return "financial_id";
+  case 6:
+    return "credit_card";
+  case 7:
+    return "bank_account";
+  case 8:
+    return "tax_id";
+  case 9:
+    return "online_id";
+  case 10:
     return "ip";
-  case 24:
+  case 11:
+    return "handle";
+  case 12:
+    return "device_id";
+  case 13:
+    return "location";
+  case 15:
+    return "non-maleficence";
+  case 16:
+    return "hate_speech";
+  case 18:
     return "self_harm";
-  case 25:
+  case 19:
     return "dangerous_instructions";
-  case 27:
+  case 21:
     return "medical_risk";
+
   default:
     return "unknown";
   }

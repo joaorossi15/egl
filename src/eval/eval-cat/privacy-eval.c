@@ -20,13 +20,7 @@ static int ensure_cap(PolicyRunTime *prt, size_t need) {
   return 1;
 }
 
-// int handler_ph(int flag, int cat_id, PolicyRunTime *prt, char input[static
-// 1]) {
-//   printf("flag %d: found privacy\n", flag);
-//   return 0;
-// }
-
-int handler_em(int flag, int cat_id, PolicyRunTime *prt) {
+int handler_email(int flag, int cat_id, PolicyRunTime *prt) {
   char *tmp = prt->buf;
   int found = 0;
 
@@ -113,21 +107,3 @@ int handler_em(int flag, int cat_id, PolicyRunTime *prt) {
   }
   return OK;
 }
-
-// int handler_addr(int flag, int cat_id, PolicyRunTime *prt,
-//                  char input[static 1]) {
-//   printf("flag %d: found privacy\n", flag);
-//   return 0;
-// }
-//
-// int handler_ip(int flag, int cat_id, PolicyRunTime *prt, char input[static
-// 1]) {
-//   printf("flag %d: found privacy\n", flag);
-//   return 0;
-// }
-//
-// int handler_pv(int flag, int cat_id, PolicyRunTime *prt, char input[static
-// 1]) {
-//   printf("flag %d: found privacy\n", flag);
-//   return 0;
-// }
