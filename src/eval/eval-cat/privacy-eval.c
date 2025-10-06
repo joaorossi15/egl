@@ -1,7 +1,10 @@
+#define PCRE2_CODE_UNIT_WIDTH 8
 #include "../eval.h"
 #include "helpers/helper.h"
 #include "parser.h"
+#include "runtime.h"
 #include <ctype.h>
+#include <pcre2.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +21,90 @@ static int ensure_cap(PolicyRunTime *prt, size_t need) {
   prt->buf = new_block;
   prt->buf_cap = cap;
   return 1;
+}
+
+int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
+  static pcre2_code *re = NULL;
+  short re_ready = 0;
+
+  if (!re_ready) {
+    PCRE2_SIZE erroff = 0;
+    int errcode = 0;
+    PCRE2_SPTR pat = (PCRE2_SPTR) "^\\+?(\\d{1,3})?[-.\\s]?(\\(?\\d{3}\\)?[-."
+                                  "\\s]?)?(\\d[-.\\s]?){6,9}\\d$";
+    re = pcre2_compile(pat, PCRE2_ZERO_TERMINATED, 0, &errcode, &erroff, NULL);
+    if (!re)
+      return ERROR;
+    re_ready = 1;
+  }
+
+  size_t len = strlen(prt->buf);
+  size_t off = 0;
+  int found = 0;
+
+  pcre2_match_data *md = pcre2_match_data_create(8, NULL);
+  if (!md)
+    return ERROR;
+
+  while (off < len) {
+
+    int rc = pcre2_match(re, (PCRE2_SPTR)(prt->buf + off), len - off, 0, 0, md,
+                         NULL);
+
+    if (rc < 0) {
+      off++;
+      continue;
+    }
+
+    PCRE2_SIZE *ov = pcre2_get_ovector_pointer(md);
+    size_t s = off + ov[0];
+    size_t e = off + ov[1];
+    if (e <= s) {
+      off++;
+      continue;
+    }
+
+    found = 1;
+
+    int act = action_from_flag(flag);
+    if (act >= 0) {
+      prt->counts[act][cat_id] += 1;
+      prt->total_by_action[act] += 1;
+    }
+
+    switch (flag) {
+    case FORBID_FLAG:
+      pcre2_match_data_free(md);
+      return FORBID_VIOLATION;
+    case REDACT_FLAG: {
+      StrView mask = prt->mask_redact[cat_id];
+      char c = (mask.ptr && mask.len) ? mask.ptr[0] : '*';
+      memset(prt->buf + s, c, e - s);
+      break;
+    }
+    case APPEND_FLAG:
+      break;
+    default:
+      return ERROR;
+    }
+    off = e;
+  }
+
+  pcre2_match_data_free(md);
+
+  if (found && flag == APPEND_FLAG) {
+    StrView app = prt->append_string[cat_id];
+    if (app.ptr && app.len > 0) {
+      size_t cur_len = strlen(prt->buf);
+      size_t need = cur_len + 1 + (size_t)app.len + 1;
+      if (!ensure_cap(prt, need))
+        return ERROR;
+      prt->buf[cur_len] = ' ';
+      memcpy(prt->buf + cur_len + 1, app.ptr, (size_t)app.len);
+      prt->buf[cur_len + 1 + app.len] = '\0';
+    }
+  }
+  return OK;
 }
 
 int handler_email(int flag, int cat_id, PolicyRunTime *prt) {

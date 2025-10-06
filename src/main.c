@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  int debug_on = scan_debug_pragma(buf);
+  short is_debug_on = scan_debug_pragma(buf);
 
   Lexer l;
   Token tk;
@@ -129,9 +129,9 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  int rc = evaluate_rt_obj(&prt, "email: test@test.com");
+  int rc = evaluate_rt_obj(&prt, "email: test@test.com, phone: +55991521247");
 
-  prt.debug = debug_on;
+  prt.debug = is_debug_on;
 
   if (rc == FORBID_VIOLATION) {
     printf("FORBIDDEN OUTPUT\n");

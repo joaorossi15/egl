@@ -18,7 +18,7 @@ static inline int id_from_cat_bit(int bit) {
 TableEntry table[32] = {
     // {PRIVACY, handler_privacy},
     // {PERSONAL_ID, handler_personal_id},
-    // {PHONE, handler_phone},
+    {PHONE, handler_phone},
     {EMAIL, handler_email},
     // {ADDRESS, handler_address},
     // {FINANCIAL_ID, handler_financial_id},
@@ -46,6 +46,7 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
 
   size_t len = strlen(input);
   size_t need = len + 1;
+  short forbid = 0;
 
   if (prt->buf == NULL || prt->buf_cap < need) {
     size_t cap = prt->buf_cap ? prt->buf_cap : 64;
@@ -75,10 +76,13 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
 
     int cat_id = id_from_cat_bit(m);
     const int rc = table[i].handler_t(flag, cat_id, prt);
-    if (rc != OK)
+    if (rc != OK && rc != FORBID_VIOLATION)
       return rc;
-    if (flag == FORBID_FLAG)
-      return FORBID_VIOLATION;
+    if (rc == FORBID_VIOLATION)
+      forbid = 1;
   }
+  if (forbid)
+    return FORBID_VIOLATION;
+
   return OK;
 }

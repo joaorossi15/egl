@@ -1,4 +1,5 @@
 @debug
 policy my_policy(post):
   forbid: email
+  redact: phone "!"
 end
