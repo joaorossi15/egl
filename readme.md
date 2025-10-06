@@ -1,13 +1,13 @@
 # EGL - Ethical Guardrail Language
 
-A simple domain specific-language for ethical guardrails related to modular ethical principles for AI conversations (working with fairness and non-maleficence at the moment).
+A simple domain specific-language for ethical guardrails related to modular ethical principles for AI conversations (working with privacy and non-maleficence at the moment).
 
 ## Example EGL Syntax
 ```egl
 policy p1(pre, post):
   forbid: hate_speech
-  redact: privacy "---"
-  append: medical_risk "Remember to be respectful."
+  redact: email "*"
+  append: medical_risk "This is not professional medical advice."
 end
 ```
 
