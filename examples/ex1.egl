@@ -1,4 +1,4 @@
 @debug
 policy my_policy(post):
-  forbid: phone, email
+  forbid: personal_id
 end

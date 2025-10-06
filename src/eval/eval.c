@@ -17,7 +17,7 @@ static inline int id_from_cat_bit(int bit) {
 
 TableEntry table[32] = {
     // {PRIVACY, handler_privacy},
-    // {PERSONAL_ID, handler_personal_id},
+    {PERSONAL_ID, handler_personal_id},
     {PHONE, handler_phone},
     {EMAIL, handler_email},
     // {ADDRESS, handler_address},
