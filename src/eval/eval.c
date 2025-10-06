@@ -46,7 +46,6 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
 
   size_t len = strlen(input);
   size_t need = len + 1;
-  short forbid = 0;
 
   if (prt->buf == NULL || prt->buf_cap < need) {
     size_t cap = prt->buf_cap ? prt->buf_cap : 64;
@@ -61,27 +60,44 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
 
   memcpy(prt->buf, input, need);
 
+  short saw_forbid = 0;
   for (int i = 0; i < TABLE_SIZE; i++) {
-    const uint32_t m = table[i].mask_value;
-    int flag = -1;
-
-    if (prt->forbid_bitmask & m)
-      flag = FORBID_FLAG;
-    else if (prt->redact_bitmask & m)
-      flag = REDACT_FLAG;
-    else if (prt->append_bitmask & m)
-      flag = APPEND_FLAG;
-    else
+    uint64_t m = table[i].mask_value;
+    if (!(prt->forbid_bitmask & m))
       continue;
-
     int cat_id = id_from_cat_bit(m);
-    const int rc = table[i].handler_t(flag, cat_id, prt);
-    if (rc != OK && rc != FORBID_VIOLATION)
+    int rc = table[i].handler_t(FORBID_FLAG, cat_id, prt);
+    if (rc == FORBID_VIOLATION) {
+      saw_forbid = 1;
+      continue;
+    }
+    if (rc != OK)
       return rc;
-    if (rc == FORBID_VIOLATION)
-      forbid = 1;
   }
-  if (forbid)
+
+  if (saw_forbid && !prt->debug) {
+    return FORBID_VIOLATION;
+  }
+
+  for (int i = 0; i < TABLE_SIZE; i++) {
+    uint64_t m = table[i].mask_value;
+    if (!((prt->redact_bitmask | prt->append_bitmask) & m))
+      continue;
+    int cat_id = id_from_cat_bit(m);
+
+    if (prt->redact_bitmask & m) {
+      int rc = table[i].handler_t(REDACT_FLAG, cat_id, prt);
+      if (rc != OK)
+        return rc;
+    }
+    if (prt->append_bitmask & m) {
+      int rc = table[i].handler_t(APPEND_FLAG, cat_id, prt);
+      if (rc != OK)
+        return rc;
+    }
+  }
+
+  if (saw_forbid)
     return FORBID_VIOLATION;
 
   return OK;

@@ -26,12 +26,13 @@ static int ensure_cap(PolicyRunTime *prt, size_t need) {
 int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
   static pcre2_code *re = NULL;
   short re_ready = 0;
+  short saw_forbid = 0;
 
   if (!re_ready) {
     PCRE2_SIZE erroff = 0;
     int errcode = 0;
-    PCRE2_SPTR pat = (PCRE2_SPTR) "^\\+?(\\d{1,3})?[-.\\s]?(\\(?\\d{3}\\)?[-."
-                                  "\\s]?)?(\\d[-.\\s]?){6,9}\\d$";
+    PCRE2_SPTR pat = (PCRE2_SPTR) "\\+?(\\d{1,3})?[-.\\s]?(\\(?\\d{3}\\)?[-."
+                                  "\\s]?)?(\\d[-.\\s]?){6,9}\\d";
     re = pcre2_compile(pat, PCRE2_ZERO_TERMINATED, 0, &errcode, &erroff, NULL);
     if (!re)
       return ERROR;
@@ -64,6 +65,12 @@ int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
       continue;
     }
 
+    if (s > 0 && e < len &&
+        (isalnum(prt->buf[s - 1]) || isalnum(prt->buf[e]))) {
+      off = e;
+      continue;
+    }
+
     found = 1;
 
     int act = action_from_flag(flag);
@@ -74,8 +81,8 @@ int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
 
     switch (flag) {
     case FORBID_FLAG:
-      pcre2_match_data_free(md);
-      return FORBID_VIOLATION;
+      saw_forbid++;
+      break;
     case REDACT_FLAG: {
       StrView mask = prt->mask_redact[cat_id];
       char c = (mask.ptr && mask.len) ? mask.ptr[0] : '*';
@@ -91,6 +98,9 @@ int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
   }
 
   pcre2_match_data_free(md);
+
+  if (found && saw_forbid)
+    return FORBID_VIOLATION;
 
   if (found && flag == APPEND_FLAG) {
     StrView app = prt->append_string[cat_id];
@@ -110,6 +120,7 @@ int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
 int handler_email(int flag, int cat_id, PolicyRunTime *prt) {
   char *tmp = prt->buf;
   int found = 0;
+  short saw_forbid = 0;
 
   while ((tmp = strchr(tmp, '@')) != NULL) {
     if (tmp == prt->buf) {
@@ -123,11 +134,10 @@ int handler_email(int flag, int cat_id, PolicyRunTime *prt) {
            (isalnum((unsigned char)*left_segment) || *left_segment == '_' ||
             *left_segment == '.' || *left_segment == '%' ||
             *left_segment == '+' || *left_segment == '-')) {
-      left_segment--; // decrement pointer one step at a time
+      left_segment--;
     }
 
-    left_segment++; // increment one value to the pointer because the late check
-                    // ended after the correct pos
+    left_segment++;
 
     if (left_segment == tmp) {
       tmp++;
@@ -164,7 +174,8 @@ int handler_email(int flag, int cat_id, PolicyRunTime *prt) {
 
     switch (flag) {
     case FORBID_FLAG:
-      return FORBID_VIOLATION;
+      saw_forbid++;
+      break;
     case REDACT_FLAG: {
       StrView mask = prt->mask_redact[cat_id];
       char c = (mask.ptr && mask.len) ? mask.ptr[0] : '*';
@@ -179,6 +190,9 @@ int handler_email(int flag, int cat_id, PolicyRunTime *prt) {
     }
     tmp = right_segment;
   }
+
+  if (found && saw_forbid)
+    return FORBID_VIOLATION;
 
   if (found && flag == APPEND_FLAG) {
     StrView app = prt->append_string[cat_id];
