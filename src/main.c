@@ -142,19 +142,26 @@ int main(int argc, char **argv) {
   int rc = evaluate_rt_obj(&prt,
                            "Contact me at user@test.com or at +1(123)456-7890");
 
-  if (json_mode) {
-    char *exec_type =
-        prt.exec_type == 2 ? "pre_post" : (prt.exec_type == 0 ? "pre" : "post");
-    print_eval_json(&prt, exec_type, rc);
+  if (rc == ERROR) {
+    fprintf(stderr, "EVAL ERROR\n");
   } else {
-    if (rc == FORBID_VIOLATION) {
-      printf("FORBIDDEN OUTPUT\n");
-      print_debug_summary(&prt);
-    } else if (rc == OK) {
-      printf("%s\n", prt.buf);
-      print_debug_summary(&prt);
-    } else {
-      fprintf(stderr, "EVAL ERROR\n");
+    switch (json_mode) {
+    case 1: {
+      char *exec_type = prt.exec_type == 2
+                            ? "pre_post"
+                            : (prt.exec_type == 0 ? "pre" : "post");
+      print_eval_json(&prt, exec_type, rc);
+      break;
+    }
+    default:
+      if (rc == FORBID_VIOLATION) {
+        printf("FORBIDDEN OUTPUT\n");
+        print_debug_summary(&prt);
+      } else {
+        printf("%s\n", prt.buf);
+        print_debug_summary(&prt);
+      }
+      break;
     }
   }
 

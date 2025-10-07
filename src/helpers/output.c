@@ -326,36 +326,33 @@ void print_eval_json(PolicyRunTime *prt, const char *mode, int return_code) {
   printf("  \"status\": \"%s\",\n", status);
   printf("  \"return_code\": %d,\n", return_code);
 
-  // include final transformed buffer if available
-  if (prt->buf) {
+  if (prt->buf && ((prt->debug) || (return_code == 0))) {
     printf("  \"transformed_text\": \"%s\",\n", prt->buf);
   }
 
-  // actions_applied
-  printf("  \"actions_applied\": [\n");
-  int first = 1;
-  for (int act = 0; act < 3; act++) {
-    for (int cat = 0; cat < MAX_CATS; cat++) {
-      int count = prt->counts[act][cat];
-      if (count > 0) {
-        if (!first)
-          printf(",\n");
-        printf("    {\"action\":\"%s\",\"category\":\"%s\",\"count\":%d}",
-               action_name(act), cat_name(cat), count);
-        first = 0;
+  if (prt->debug) {
+    printf("  \"actions_applied\": [\n");
+    int first = 1;
+    for (int act = 0; act < 3; act++) {
+      for (int cat = 0; cat < MAX_CATS; cat++) {
+        int count = prt->counts[act][cat];
+        if (count > 0) {
+          if (!first)
+            printf(",\n");
+          printf("    {\"action\":\"%s\",\"category\":\"%s\",\"count\":%d}",
+                 action_name(act), cat_name(cat), count);
+          first = 0;
+        }
       }
     }
+    if (!first)
+      printf("\n");
+    printf("  ],\n");
+
+    printf("  \"totals\": {\"forbid\": %d, \"redact\": %d, \"append\": %d},\n",
+           prt->total_by_action[0], prt->total_by_action[1],
+           prt->total_by_action[2]);
   }
-  if (!first)
-    printf("\n");
-  printf("  ],\n");
-
-  // totals
-  printf("  \"totals\": {\"forbid\": %d, \"redact\": %d, \"append\": %d},\n",
-         prt->total_by_action[0], prt->total_by_action[1],
-         prt->total_by_action[2]);
-
-  // debug flag
   printf("  \"debug\": {\"enabled\": %s}\n", prt->debug ? "true" : "false");
 
   printf("}\n");
