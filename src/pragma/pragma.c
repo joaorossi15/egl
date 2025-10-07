@@ -1,7 +1,7 @@
 #include "pragma.h"
 #include <string.h>
 
-int scan_debug_pragma(const char *src) {
+int scan_debug_pragma(char *src) {
   const char *tmp = src;
   int debug_on = 0;
 
@@ -13,8 +13,10 @@ int scan_debug_pragma(const char *src) {
       tmp++;
 
     const char *line = tmp;
-    if (strncmp(line, "@debug", 6) == 0)
+    if (strncmp(line, "@debug", 6) == 0) {
       debug_on = 1;
+    } else
+      debug_on = -1;
 
     while (*tmp && *tmp != '\n')
       tmp++;

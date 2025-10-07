@@ -1,4 +1,4 @@
-debug
+@debug
 policy my_policy(pre, post):
     forbid: phone
     redact: email "-"

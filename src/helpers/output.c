@@ -169,7 +169,6 @@ static void dump_node(const Node *n, int depth, const char *label) {
     break;
 
   default:
-    /* nothing extra */
     break;
   }
 

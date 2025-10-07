@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
   int rc = evaluate_rt_obj(&prt,
                            "Contact me at user@test.com or at +1(123)456-7890");
 
-  if (rc == ERROR) {
+  if (rc == ERROR || prt.debug == -1) {
     fprintf(stderr, "EVAL ERROR\n");
   } else {
     switch (json_mode) {
