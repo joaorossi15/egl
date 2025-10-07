@@ -130,7 +130,8 @@ int main(int argc, char **argv) {
   }
 
   prt.debug = is_debug_on;
-  int rc = evaluate_rt_obj(&prt, "test@test.com aaaaaaaaaa +00-00-000-0000");
+  int rc = evaluate_rt_obj(
+      &prt, "phone=+55(11)912345678 email@email.com 192.168.0.1");
 
   if (rc == FORBID_VIOLATION) {
     printf("FORBIDDEN OUTPUT\n");

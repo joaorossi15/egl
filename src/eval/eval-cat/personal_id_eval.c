@@ -9,20 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int ensure_cap(PolicyRunTime *prt, size_t need) {
-  if (prt->buf && prt->buf_cap >= need)
-    return 1;
-  size_t cap = prt->buf_cap ? prt->buf_cap : 64;
-  while (cap < need)
-    cap *= 2;
-  char *new_block = (char *)realloc(prt->buf, cap);
-  if (!new_block)
-    return 0;
-  prt->buf = new_block;
-  prt->buf_cap = cap;
-  return 1;
-}
-
 int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
   static pcre2_code *re = NULL;
   short re_ready = 0;
@@ -31,8 +17,7 @@ int handler_phone(int flag, int cat_id, PolicyRunTime *prt) {
   if (!re_ready) {
     PCRE2_SIZE erroff = 0;
     int errcode = 0;
-    PCRE2_SPTR pat = (PCRE2_SPTR) "\\+?(\\d{1,3})?[-.\\s]?(\\(?\\d{3}\\)?[-."
-                                  "\\s]?)?(\\d[-.\\s]?){6,9}\\d";
+    PCRE2_SPTR pat = (PCRE2_SPTR) "(?:\\+|00)?[1-9](?:[0-9 \\-()]*\\d){7,14}";
     re = pcre2_compile(pat, PCRE2_ZERO_TERMINATED, 0, &errcode, &erroff, NULL);
     if (!re)
       return ERROR;
@@ -213,7 +198,7 @@ int handler_personal_id(int flag, int cat_id, PolicyRunTime *prt) {
   short return_value = 0;
   short saw_forbid = 0;
 
-  return_value = handler_phone(flag, cat_id, prt);
+  return_value = handler_email(flag, cat_id, prt);
   if (return_value == ERROR)
     return return_value;
   else if (return_value == FORBID_VIOLATION)
