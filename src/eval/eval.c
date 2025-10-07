@@ -27,7 +27,7 @@ TableEntry table[32] = {
     // {TAX_ID, handler_tax_id},
     // {ONLINE_ID, handler_online_id},
     {IP, handler_ip},
-    //{HANDLE, handler_sm_handle},
+    {HANDLE, handler_sm_handle},
     // {DEVICE_ID, handler_device_id},
     // {LOCATION, handler_location},
     // {NON_MALEFICENCE, handle_non_maleficence},
