@@ -1,4 +1,4 @@
 @debug
-policy my_policy(post):
-  forbid: personal_id, ip, handle
+policy my_policy(pre, post):
+  forbid: email, phone
 end

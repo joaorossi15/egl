@@ -1,5 +1,5 @@
 #include "eval/eval.h"
-#include "helpers/print.h"
+#include "helpers/output.h"
 #include "lex/lexer.h"
 #include "parser/parser.h"
 #include "pragma/pragma.h"
@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 char *read_file(const char *path) {
   FILE *f = fopen(path, "rb");
@@ -87,8 +88,8 @@ const char *token_type_to_string(TokenType type) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    printf("Usage: make <file.egl> \n");
+  if (argc < 2 && argc != 3) {
+    printf("Usage: make <file.egl> [flags] \n");
     return -1;
   }
 
@@ -97,6 +98,14 @@ int main(int argc, char **argv) {
   if (!buf) {
     printf("Could not read file: %s\n", argv[1]);
     return -1;
+  }
+
+  int json_mode = 0;
+
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "--json") == 0) {
+      json_mode = 1;
+    }
   }
 
   short is_debug_on = scan_debug_pragma(buf);
@@ -130,17 +139,23 @@ int main(int argc, char **argv) {
   }
 
   prt.debug = is_debug_on;
-  int rc = evaluate_rt_obj(
-      &prt, "phone=+55(11)12345678 email@email.com @test 192.168.0.1");
+  int rc = evaluate_rt_obj(&prt,
+                           "Contact me at user@test.com or at +1(123)456-7890");
 
-  if (rc == FORBID_VIOLATION) {
-    printf("FORBIDDEN OUTPUT\n");
-    print_debug_summary(&prt);
-  } else if (rc == OK) {
-    printf("%s\n", prt.buf);
-    print_debug_summary(&prt);
+  if (json_mode) {
+    char *exec_type =
+        prt.exec_type == 2 ? "pre_post" : (prt.exec_type == 0 ? "pre" : "post");
+    print_eval_json(&prt, exec_type, rc);
   } else {
-    fprintf(stderr, "EVAL ERROR\n");
+    if (rc == FORBID_VIOLATION) {
+      printf("FORBIDDEN OUTPUT\n");
+      print_debug_summary(&prt);
+    } else if (rc == OK) {
+      printf("%s\n", prt.buf);
+      print_debug_summary(&prt);
+    } else {
+      fprintf(stderr, "EVAL ERROR\n");
+    }
   }
 
   free(prt.buf);
