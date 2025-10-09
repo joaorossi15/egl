@@ -1,5 +1,5 @@
 @debug
 policy my_policy(pre, post):
-    forbid: phone
-    redact: email "-"
+    redact: email "-", device_id "*"
+    append: ip "ip...", phone "phone..."
 end

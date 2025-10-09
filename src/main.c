@@ -139,8 +139,9 @@ int main(int argc, char **argv) {
   }
 
   prt.debug = is_debug_on;
-  int rc = evaluate_rt_obj(&prt,
-                           "Contact me at user@test.com or at +1(123)456-7890");
+  int rc =
+      evaluate_rt_obj(&prt, "Contact me at user@test.com or at "
+                            "+1(123)456-7890, 00:00:00:00:00:00 192.168.0.1");
 
   if (rc == ERROR || prt.debug == -1) {
     fprintf(stderr, "EVAL ERROR\n");

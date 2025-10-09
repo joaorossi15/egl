@@ -1,3 +1,4 @@
+@debug
 policy my_policy(pre):
-  forbid: non_gender_neutral_wording, hate_speech
+  forbid: personal_id, online_id
 end
