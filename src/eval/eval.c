@@ -24,7 +24,6 @@ TableEntry table[32] = {
     // {FINANCIAL_ID, handler_financial_id},
     // {CARD, handler_card},
     // {BANK_ACCOUNT, handler_bank_account},
-    // {TAX_ID, handler_tax_id},
     {ONLINE_ID, handler_online_id},
     {IP, handler_ip},
     {HANDLE, handler_sm_handle},

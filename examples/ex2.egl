@@ -1,4 +1,4 @@
 @debug
-policy my_policy(pre):
-  forbid: personal_id, online_id
+policy my_policy(post):
+  redact: email "*"
 end

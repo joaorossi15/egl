@@ -227,7 +227,6 @@ char *long_to_binary(unsigned long k)
 
 static const char *cat_name(int id) {
   switch (id) {
-  // ---- Privacy
   case 0:
     return "privacy";
   case 1:
@@ -283,6 +282,7 @@ void print_debug_summary(const PolicyRunTime *prt) {
   if (!prt->debug)
     return;
 
+  printf("[DEBUG] ");
   for (int act = 0; act < 3; ++act) {
     if (prt->total_by_action[act] == 0)
       continue;
@@ -338,7 +338,7 @@ void print_eval_json(PolicyRunTime *prt, const char *mode, int return_code) {
         if (count > 0) {
           if (!first)
             printf(",\n");
-          printf("    {\"action\":\"%s\",\"category\":\"%s\",\"count\":%d}",
+          printf("    {\"action\":\"%s\",\"evaluated\":\"%s\",\"count\":%d}",
                  action_name(act), cat_name(cat), count);
           first = 0;
         }
