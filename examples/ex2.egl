@@ -1,4 +1,4 @@
 @debug
 policy my_policy(post):
-  redact: email "*"
+  redact: username "*", email "-"
 end

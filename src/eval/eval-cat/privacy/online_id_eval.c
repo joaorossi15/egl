@@ -1,6 +1,6 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
-#include "../eval.h"
-#include "helpers/helper.h"
+#include "../../eval.h"
+#include "../helpers/helper.h"
 #include "parser.h"
 #include "runtime.h"
 #include <ctype.h>
@@ -117,53 +117,83 @@ int handler_sm_handle(int flag, int cat_id, PolicyRunTime *prt) {
       continue;
     }
 
-    char *left_segment = tmp - 1;
-
-    if (isalnum((unsigned char)*left_segment)) {
+    char *left = tmp - 1;
+    if (isalnum((unsigned char)*left)) {
       tmp++;
       continue;
     }
 
-    char *right_segment = tmp + 1;
-    if (!isalnum((unsigned char)*right_segment)) {
+    char *start = tmp + 1;
+    if (!isalnum((unsigned char)*start)) {
       tmp++;
       continue;
     }
 
-    while (*right_segment && *right_segment != ' ' && *right_segment != '\0' &&
-           *right_segment != '\r' && *right_segment != '\t') {
-      right_segment++;
-    }
+    char *end = start;
+    while (*end && *end != ' ' && *end != '\r' && *end != '\t' && *end != '\n')
+      end++;
+
+    while (end > start && (end[-1] == ',' || end[-1] == '.' || end[-1] == ';' ||
+                           end[-1] == ':'))
+      end--;
 
     found = 1;
-
-    int act = action_from_flag(flag);
-    if (act >= 0) {
-      prt->counts[act][cat_id] += 1;
-      prt->total_by_action[act] += 1;
-    }
-
-    switch (flag) {
-    case FORBID_FLAG:
-      saw_forbid++;
-      break;
-    case REDACT_FLAG: {
-      StrView mask = prt->mask_redact[cat_id];
-      char c = (mask.ptr && mask.len) ? mask.ptr[0] : '*';
-      size_t n = (size_t)(right_segment - left_segment);
-      memset(left_segment, c, n);
-      break;
-    }
-    case APPEND_FLAG:
-      break;
-    default:
+    if (process_match_and_act(flag, cat_id, prt, left, end, &saw_forbid) ==
+        ERROR)
       return ERROR;
-    }
-    tmp = right_segment;
+
+    tmp = end;
   }
 
-  if (found && saw_forbid)
-    return FORBID_VIOLATION;
+  static const char *PREFIXES[] = {
+      "t.me/",           "telegram.me/",  "x.com/",           "instagram.com/",
+      "github.com/",     "reddit.com/u/", "reddit.com/user/", "threads.net/",
+      "linkedin.com/in/"};
+  const size_t N = sizeof(PREFIXES) / sizeof(PREFIXES[0]);
+
+  for (size_t i = 0; i < N; ++i) {
+    char *p = prt->buf;
+    size_t plen = strlen(PREFIXES[i]);
+    while ((p = strstr(p, PREFIXES[i])) != NULL) {
+      char *user = p + (ptrdiff_t)plen;
+      if (!is_handle_char((unsigned char)*user) ||
+          !isalnum((unsigned char)*user)) {
+        p += 1;
+        continue;
+      }
+      char *end = scan_handle_end(user);
+
+      if (end > user) {
+        found = 1;
+        if (process_match_and_act(flag, cat_id, prt, user, end, &saw_forbid) ==
+            ERROR)
+          return ERROR;
+      }
+      p = end;
+    }
+  }
+
+  char *p = prt->buf;
+  while ((p = strstr(p, "u/")) != NULL) {
+    if (p > prt->buf && isalnum((unsigned char)p[-1])) {
+      p += 2;
+      continue;
+    }
+    char *user = p + 2;
+    if (!isalnum((unsigned char)*user)) {
+      p += 2;
+      continue;
+    }
+
+    char *end = scan_handle_end(user);
+    if (end > user) {
+      found = 1;
+      if (process_match_and_act(flag, cat_id, prt, user, end, &saw_forbid) ==
+          ERROR)
+        return ERROR;
+    }
+    p = end;
+  }
 
   if (found && flag == APPEND_FLAG) {
     StrView app = prt->append_string[cat_id];
@@ -177,6 +207,9 @@ int handler_sm_handle(int flag, int cat_id, PolicyRunTime *prt) {
       prt->buf[cur_len + 1 + app.len] = '\0';
     }
   }
+
+  if (found && saw_forbid)
+    return FORBID_VIOLATION;
   return OK;
 }
 

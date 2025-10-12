@@ -139,7 +139,8 @@ int main(int argc, char **argv) {
   }
 
   prt.debug = is_debug_on;
-  int rc = evaluate_rt_obj(&prt, "Write to author@university.edu");
+  int rc = evaluate_rt_obj(&prt, "Write to instagram.com/university or "
+                                 "email@university.com or u/university");
 
   if (rc == ERROR || prt.debug == -1) {
     fprintf(stderr, "EVAL ERROR\n");
