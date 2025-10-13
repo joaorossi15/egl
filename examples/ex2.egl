@@ -1,4 +1,5 @@
 @debug
+@aggressive
 policy my_policy(post):
-  redact: username "*", email "-"
+  redact: self_harm "*"
 end

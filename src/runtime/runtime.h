@@ -49,6 +49,7 @@ typedef struct {
   char *buf;
   size_t buf_cap;
   int debug;
+  int aggr;
 
   int counts[3][MAX_CATS];
   int total_by_action[3];

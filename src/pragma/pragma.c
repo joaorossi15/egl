@@ -1,28 +1,30 @@
 #include "pragma.h"
 #include <string.h>
 
-int scan_debug_pragma(char *src) {
-  const char *tmp = src;
-  int debug_on = 0;
+static int scan_pragma(const char *src, const char *tag) {
+  const char *p = src;
+  size_t taglen = strlen(tag);
 
-  while (*tmp) {
-    if (strncmp(tmp, "policy", 6) == 0)
+  while (*p) {
+    while (*p == ' ' || *p == '\t' || *p == '\r')
+      p++;
+
+    if (strncmp(p, "policy", 6) == 0)
       break;
 
-    while (*tmp == ' ' || *tmp == '\t')
-      tmp++;
+    if (strncmp(p, tag, taglen) == 0)
+      return 1;
 
-    const char *line = tmp;
-    if (strncmp(line, "@debug", 6) == 0) {
-      debug_on = 1;
-    } else
-      debug_on = -1;
-
-    while (*tmp && *tmp != '\n')
-      tmp++;
-    if (*tmp == '\n')
-      tmp++;
+    const char *nl = strchr(p, '\n');
+    if (!nl)
+      break;
+    p = nl + 1;
   }
+  return 0;
+}
 
-  return debug_on;
+int scan_debug_pragma(char *src) { return scan_pragma(src, "@debug"); }
+
+int scan_aggressive_pragma(char *src) {
+  return scan_pragma(src, "@aggressive");
 }

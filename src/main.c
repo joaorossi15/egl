@@ -109,6 +109,7 @@ int main(int argc, char **argv) {
   }
 
   short is_debug_on = scan_debug_pragma(buf);
+  short is_aggressive_on = scan_aggressive_pragma(buf);
 
   Lexer l;
   Token tk;
@@ -139,8 +140,9 @@ int main(int argc, char **argv) {
   }
 
   prt.debug = is_debug_on;
-  int rc = evaluate_rt_obj(&prt, "Write to instagram.com/university or "
-                                 "email@university.com or u/university");
+  prt.aggr = is_aggressive_on;
+
+  int rc = evaluate_rt_obj(&prt, "u should off-yourself");
 
   if (rc == ERROR || prt.debug == -1) {
     fprintf(stderr, "EVAL ERROR\n");
