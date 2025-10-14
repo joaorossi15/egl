@@ -88,8 +88,8 @@ const char *token_type_to_string(TokenType type) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 2 && argc != 3) {
-    printf("Usage: make <file.egl> [flags] \n");
+  if (argc < 3 && argc != 4) {
+    printf("Usage: ./egl <file.egl> [flags] [input] \n");
     return -1;
   }
 
@@ -101,11 +101,25 @@ int main(int argc, char **argv) {
   }
 
   int json_mode = 0;
+  int i = 2;
+  char *input_str = NULL;
 
-  for (int i = 1; i < argc; i++) {
+  for (; i < argc; i++) {
+    if (argv[i][0] != '-')
+      break;
     if (strcmp(argv[i], "--json") == 0) {
       json_mode = 1;
+    } else {
+      fprintf(stderr, "Unknown flag: %s\n", argv[i]);
+      return -1;
     }
+  }
+
+  if (i < argc) {
+    input_str = argv[i];
+  } else {
+    fprintf(stderr, "Error: no input string provided\n");
+    return 3;
   }
 
   short is_debug_on = scan_debug_pragma(buf);
@@ -115,7 +129,7 @@ int main(int argc, char **argv) {
   Token tk;
   init_lex(&l, buf);
   Token tks[100];
-  int i = 0;
+  i = 0;
   do {
     tk = new_token(&l);
     tks[i] = tk;
@@ -142,7 +156,7 @@ int main(int argc, char **argv) {
   prt.debug = is_debug_on;
   prt.aggr = is_aggressive_on;
 
-  int rc = evaluate_rt_obj(&prt, "u should off-yourself");
+  int rc = evaluate_rt_obj(&prt, input_str);
 
   if (rc == ERROR || prt.debug == -1) {
     fprintf(stderr, "EVAL ERROR\n");
