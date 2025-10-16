@@ -29,7 +29,8 @@ enum {
   CL_REPORT = 1 << 6,
   CL_LIFE = 1 << 7,
   CL_ENDLIFE_V = 1 << 8,
-  CL_REPORT_VB = 1 << 9
+  CL_REPORT_VB = 1 << 9,
+  CL_AGGR = 1 << 10,
 };
 
 static int token_in_list(const char *t, const char *const *list, size_t n) {
@@ -85,7 +86,7 @@ static int classify_token(const char *t, int aggr) {
     collapse_alnum_lower(t, collapsed, sizeof(collapsed));
     if (token_in_list(collapsed, L_ENC_AGGR,
                       sizeof(L_ENC_AGGR) / sizeof(L_ENC_AGGR[0]))) {
-      mask |= CL_ENC;
+      mask |= CL_AGGR;
       if (strcmp(collapsed, "take") == 0)
         mask |= CL_ENDLIFE_V;
       if (strcmp(collapsed, "life") == 0)
@@ -184,6 +185,7 @@ static int score_window(Type *T, int a, int b, int aggr) {
   int have_rv = 0;
   int have_life = 0;
   int have_ev = 0;
+  int have_aggr = 0;
 
   for (int i = a; i < b; i++) {
     int mask = T[i].bitmask;
@@ -197,11 +199,14 @@ static int score_window(Type *T, int a, int b, int aggr) {
     have_rv |= (mask & CL_REPORT_VB) ? 1 : 0;
     have_life |= (mask & CL_LIFE) ? 1 : 0;
     have_ev |= (mask & CL_ENDLIFE_V) ? 1 : 0;
+    have_aggr |= (mask & CL_AGGR) ? 1 : 0;
   }
 
   int score = 0;
   if (have_enc && (have_target || have_sec_p))
     score += 3;
+  if (have_aggr)
+    score += 4;
   if (have_imp)
     score += 2;
   if (have_sec_p)
@@ -228,7 +233,7 @@ static int score_window(Type *T, int a, int b, int aggr) {
   }
 
   if (have_rv && !have_imp)
-    score -= 1;
+    score--;
 
   return score;
 }

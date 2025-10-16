@@ -1,5 +1,5 @@
 @debug
+@aggressive
 policy my_policy(pre, post):
-    redact: email "-", device_id "*"
-    append: ip "ip...", phone "phone..."
+    forbid: self_harm
 end

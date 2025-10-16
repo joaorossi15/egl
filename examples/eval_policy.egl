@@ -1,0 +1,4 @@
+@debug
+policy eval(pre, post)
+    forbid: email, phone, ip, device_id, self_harm, username
+end

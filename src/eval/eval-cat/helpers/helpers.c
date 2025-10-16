@@ -61,3 +61,15 @@ char *scan_handle_end(char *p) {
     p++;
   return p;
 }
+
+char *normalize_prefix_start(const char *s) {
+  if (strncmp(s, "https://", 8) == 0)
+    s += 8;
+  else if (strncmp(s, "http://", 7) == 0)
+    s += 7;
+
+  if (strncmp(s, "www.", 4) == 0)
+    s += 4;
+
+  return s;
+}

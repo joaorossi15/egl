@@ -1,20 +1,21 @@
 #ifndef SH_H
 #define SH_H
 
-static const char *const L_ENC[] = {"kill",     "hurt",      "harm", "end",
-                                    "finish",   "cut",       "die",  "suicide",
-                                    "selfharm", "self-harm", "off",  "unalive"};
+static const char *const L_ENC[] = {"kill",    "hurt",     "harm",      "end",
+                                    "ending",  "finish",   "cut",       "die",
+                                    "suicide", "selfharm", "self-harm", "off",
+                                    "unalive", "fade",     "vanish"};
 
 static const char *const L_TARGET[] = {"yourself", "your", "yourself"};
 
 static const char *const L_2P[] = {"you", "your", "u", "ur", "ya"};
 
-static const char *const L_IMP[] = {"do",    "go",     "just",        "now",
-                                    "must",  "should", "need",        "have",
-                                    "gotta", "right",  "immediately", "now"};
+static const char *const L_IMP[] = {"do",    "go",       "just",        "now",
+                                    "must",  "should",   "need",        "have",
+                                    "gotta", "right",    "immediately", "now",
+                                    "today", "tomorrow", "tonight"};
 
-static const char *const L_NEG[] = {"dont", "don't", "do",
-                                    "not",  "never", "no"};
+static const char *const L_NEG[] = {"dont", "don't", "never"};
 
 static const char *const L_SUPPORT[] = {
     "help",      "hotline",   "support",   "prevention", "lifeline", "crisis",

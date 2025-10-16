@@ -154,21 +154,27 @@ int handler_sm_handle(int flag, int cat_id, PolicyRunTime *prt) {
   for (size_t i = 0; i < N; ++i) {
     char *p = prt->buf;
     size_t plen = strlen(PREFIXES[i]);
-    while ((p = strstr(p, PREFIXES[i])) != NULL) {
-      char *user = p + (ptrdiff_t)plen;
-      if (!is_handle_char((unsigned char)*user) ||
-          !isalnum((unsigned char)*user)) {
-        p += 1;
+
+    while (*p) {
+      const char *normalized = normalize_prefix_start(p);
+      char *f = strstr(normalized, PREFIXES[i]);
+      if (!f)
+        break;
+
+      char *user = f + (ptrdiff_t)plen;
+      if (!isalnum((unsigned char)*user) && *user != '_') {
+        p = f + 1;
         continue;
       }
-      char *end = scan_handle_end(user);
 
+      char *end = scan_handle_end(user);
       if (end > user) {
         found = 1;
         if (process_match_and_act(flag, cat_id, prt, user, end, &saw_forbid) ==
             ERROR)
           return ERROR;
       }
+
       p = end;
     }
   }
