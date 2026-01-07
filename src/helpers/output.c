@@ -1,3 +1,5 @@
+#include "detector_result.h"
+#include "eval.h"
 #include "parser.h"
 #include "runtime.h"
 #include <stdio.h>
@@ -6,6 +8,32 @@
 static void indent(int n) {
   while (n--) {
     fputs("  ", stdout);
+  }
+}
+
+static const char *action_name_from_idx(int action_idx) {
+  switch (action_idx) {
+  case COUNTS_FORBID:
+    return "forbid";
+  case COUNTS_REDACT:
+    return "redact";
+  case COUNTS_APPEND:
+    return "append";
+  default:
+    return "unknown";
+  }
+}
+
+static const char *backend_name(DetectorBackend b) {
+  switch (b) {
+  case DET_BACKEND_DETERMINISTIC:
+    return "deterministic";
+  case DET_BACKEND_HYBRID:
+    return "hybrid";
+  case DET_BACKEND_PROBABILISTIC:
+    return "probabilistic";
+  default:
+    return "unknown";
   }
 }
 
@@ -302,36 +330,25 @@ void print_debug_summary(const PolicyRunTime *prt) {
   }
 }
 
-const char *action_name(int act) {
-  switch (act) {
-  case 0:
-    return "forbid";
-  case 1:
-    return "redact";
-  case 2:
-    return "append";
-  default:
-    return "unknown";
-  }
-}
-
-void print_eval_json(PolicyRunTime *prt, const char *mode, int return_code) {
-  const char *status = (return_code == -2)  ? "FORBIDDEN"
-                       : (return_code == 0) ? "OK"
-                                            : "ERROR";
+void print_eval_json(PolicyRunTime *prt, const DetectorLog *det_logs,
+                     size_t det_len, const char *mode, int return_code) {
+  const char *status = (return_code == FORBID_VIOLATION) ? "FORBIDDEN"
+                       : (return_code == OK)             ? "OK"
+                                                         : "ERROR";
 
   printf("{\n");
   printf("  \"mode\": \"%s\",\n", mode);
   printf("  \"status\": \"%s\",\n", status);
   printf("  \"return_code\": %d,\n", return_code);
 
-  if (prt->buf && ((prt->debug) || (return_code == 0))) {
+  if (prt->buf && (prt->debug || return_code == OK)) {
     printf("  \"transformed_text\": \"%s\",\n", prt->buf);
   }
 
   if (prt->debug) {
     printf("  \"actions_applied\": [\n");
     int first = 1;
+
     for (int act = 0; act < 3; act++) {
       for (int cat = 0; cat < MAX_CATS; cat++) {
         int count = prt->counts[act][cat];
@@ -339,12 +356,40 @@ void print_eval_json(PolicyRunTime *prt, const char *mode, int return_code) {
           if (!first)
             printf(",\n");
           printf("    {\"action\":\"%s\",\"evaluated\":\"%s\",\"count\":%d}",
-                 action_name(act), cat_name(cat), count);
+                 act_label(act), cat_name(cat), count);
           first = 0;
         }
       }
     }
+
     if (!first)
+      printf("\n");
+    printf("  ],\n");
+
+    printf("  \"detectors\": [");
+
+    for (size_t k = 0; k < det_len; k++) {
+      const DetectorLog *dl = &det_logs[k];
+      const DetectorResult *d = &dl->dr;
+
+      if (k > 0)
+        printf(",");
+
+      printf("\n    {"
+             "\"action\":\"%s\","
+             "\"category\":\"%s\","
+             "\"cat_id\":%d,"
+             "\"backend\":\"%s\","
+             "\"score\":%.6f,"
+             "\"threshold\":%.6f,"
+             "\"matched\":%s"
+             "}",
+             action_name_from_idx(dl->action_idx), cat_name(d->cat_id),
+             d->cat_id, backend_name(d->backend), d->score, d->threshold,
+             d->matched ? "true" : "false");
+    }
+
+    if (det_len > 0)
       printf("\n");
     printf("  ],\n");
 
@@ -352,7 +397,7 @@ void print_eval_json(PolicyRunTime *prt, const char *mode, int return_code) {
            prt->total_by_action[0], prt->total_by_action[1],
            prt->total_by_action[2]);
   }
-  printf("  \"debug\": {\"enabled\": %s}\n", prt->debug ? "true" : "false");
 
+  printf("  \"debug\": {\"enabled\": %s}\n", prt->debug ? "true" : "false");
   printf("}\n");
 }

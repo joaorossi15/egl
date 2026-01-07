@@ -1,6 +1,7 @@
 #ifndef RUNTIME_OBJ_H
 #define RUNTIME_OBJ_H
 
+#include "detector_result.h"
 #include "parser.h"
 #include "stdint.h"
 #include <stddef.h>
@@ -42,8 +43,8 @@ typedef struct {
   uint32_t forbid_bitmask;
   uint32_t redact_bitmask;
   uint32_t append_bitmask;
-  StrView mask_redact[MAX_CATS];   // mask for redact
-  StrView append_string[MAX_CATS]; // value to append
+  StrView mask_redact[MAX_CATS];
+  StrView append_string[MAX_CATS];
   short exec_type;
 
   char *buf;
@@ -53,6 +54,11 @@ typedef struct {
 
   int counts[3][MAX_CATS];
   int total_by_action[3];
+
+  DetectorLog *det_logs;
+  size_t det_len;
+  size_t det_cap;
+
 } PolicyRunTime;
 
 int compile_policy(Program *p, PolicyRunTime *prt);

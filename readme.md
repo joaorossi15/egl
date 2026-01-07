@@ -24,5 +24,10 @@ Clean files with `make`:
 
 ## Execute
 Run EGL with a source file .egl:
-- `./egl path/to/source.egl`
+- `./egl path/to/policy.egl "input text"`
 
+Run EGL with structured JSON output
+- `./egl path/to/policy.egl --json "input text" > output.json`
+
+Run EGL with structured JSON output and DEBUG to a file
+- `./egl path/to/policy.egl --json "input text" > output.json 2> debug.log`

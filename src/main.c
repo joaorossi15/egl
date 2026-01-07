@@ -89,12 +89,11 @@ const char *token_type_to_string(TokenType type) {
 
 int main(int argc, char **argv) {
   if (argc < 3 && argc != 4) {
-    printf("Usage: ./egl <file.egl> [flags] [input] \n");
+    printf("Usage: ./egl <file.egl> [flags] [input]\n");
     return -1;
   }
 
   char *buf = read_file(argv[1]);
-
   if (!buf) {
     printf("Could not read file: %s\n", argv[1]);
     return -1;
@@ -107,10 +106,12 @@ int main(int argc, char **argv) {
   for (; i < argc; i++) {
     if (argv[i][0] != '-')
       break;
+
     if (strcmp(argv[i], "--json") == 0) {
       json_mode = 1;
     } else {
       fprintf(stderr, "Unknown flag: %s\n", argv[i]);
+      free(buf);
       return -1;
     }
   }
@@ -119,6 +120,7 @@ int main(int argc, char **argv) {
     input_str = argv[i];
   } else {
     fprintf(stderr, "Error: no input string provided\n");
+    free(buf);
     return 3;
   }
 
@@ -128,28 +130,32 @@ int main(int argc, char **argv) {
   Lexer l;
   Token tk;
   init_lex(&l, buf);
+
   Token tks[100];
-  i = 0;
+  int ntoks = 0;
   do {
     tk = new_token(&l);
-    tks[i] = tk;
-    i++;
+    tks[ntoks++] = tk;
   } while (tk.type != ENDOF);
 
-  Parser p = {0};
-  Program prog = {0};
-  parse_program(&prog, &p, tks, i);
+  Parser p = (Parser){0};
+  Program prog = (Program){0};
+  parse_program(&prog, &p, tks, ntoks);
+
   if (p.e_count != 0) {
-    for (int i = 0; i < p.e_count; i++) {
-      if (p.errors[i]) {
-        fprintf(stderr, "%s\n", p.errors[i]);
-      }
+    for (int j = 0; j < p.e_count; j++) {
+      if (p.errors[j])
+        fprintf(stderr, "%s\n", p.errors[j]);
     }
+    // You can decide whether parse errors should hard-fail:
+    // free_program(&prog); free(buf); return -1;
   }
 
-  PolicyRunTime prt = {0};
+  PolicyRunTime prt = (PolicyRunTime){0};
 
   if (compile_policy(&prog, &prt) != 0) {
+    free_program(&prog);
+    free(buf);
     return -1;
   }
 
@@ -161,15 +167,13 @@ int main(int argc, char **argv) {
   if (rc == ERROR || prt.debug == -1) {
     fprintf(stderr, "EVAL ERROR\n");
   } else {
-    switch (json_mode) {
-    case 1: {
-      char *exec_type = prt.exec_type == 2
-                            ? "pre_post"
-                            : (prt.exec_type == 0 ? "pre" : "post");
-      print_eval_json(&prt, exec_type, rc);
-      break;
-    }
-    default:
+    if (json_mode) {
+      const char *exec_type = (prt.exec_type == 2)   ? "pre_post"
+                              : (prt.exec_type == 0) ? "pre"
+                                                     : "post";
+
+      print_eval_json(&prt, prt.det_logs, prt.det_len, exec_type, rc);
+    } else {
       if (rc == FORBID_VIOLATION) {
         printf("FORBIDDEN OUTPUT\n");
         print_debug_summary(&prt);
@@ -177,10 +181,10 @@ int main(int argc, char **argv) {
         printf("%s\n", prt.buf);
         print_debug_summary(&prt);
       }
-      break;
     }
   }
 
+  free(prt.det_logs);
   free(prt.buf);
   free_program(&prog);
   free(buf);

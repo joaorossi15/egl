@@ -1,4 +1,5 @@
 #include "eval.h"
+#include "detector_result.h"
 #include "eval-cat/cat.h"
 #include "runtime.h"
 #include <limits.h>
@@ -36,9 +37,119 @@ TableEntry table[32] = {
     // {MEDICAL_RISK, handler_mr},
 };
 
+static inline DetectorResult
+eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
+                     int (*handler)(int, int, PolicyRunTime *), int flag,
+                     int *out_rc) {
+  DetectorResult dr;
+  dr.cat_id = cat_id;
+  dr.backend = DET_BACKEND_DETERMINISTIC;
+  dr.threshold = detector_default_threshold(cat_id);
+
+  long before = prt->counts[action_idx][cat_id];
+
+  int rc = handler(flag, cat_id, prt);
+  if (out_rc)
+    *out_rc = rc;
+
+  long after = prt->counts[action_idx][cat_id];
+
+  int hit = (after > before);
+
+  dr.score = hit ? 1.0f : 0.0f;
+  dr.matched = (dr.score >= dr.threshold);
+
+  return dr;
+}
+
+static int push_detector_log(DetectorLog **arr, size_t *len, size_t *cap,
+                             int action_idx, DetectorResult dr) {
+  if (*len >= *cap) {
+    size_t new_cap = (*cap == 0) ? 16 : (*cap * 2);
+    void *p = realloc(*arr, new_cap * sizeof(**arr));
+    if (!p)
+      return ERROR;
+    *arr = (DetectorLog *)p;
+    *cap = new_cap;
+  }
+  (*arr)[*len].action_idx = action_idx;
+  (*arr)[*len].dr = dr;
+  (*len)++;
+  return OK;
+}
+
+// int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
+//   if (!input)
+//     return ERROR;
+//
+//   memset(prt->counts, 0, sizeof prt->counts);
+//   memset(prt->total_by_action, 0, sizeof prt->total_by_action);
+//
+//   size_t len = strlen(input);
+//   size_t need = len + 1;
+//
+//   if (prt->buf == NULL || prt->buf_cap < need) {
+//     size_t cap = prt->buf_cap ? prt->buf_cap : 64;
+//     while (cap < need)
+//       cap *= 2;
+//     char *new_block = realloc(prt->buf, cap);
+//     if (!new_block)
+//       return ERROR;
+//     prt->buf = new_block;
+//     prt->buf_cap = cap;
+//   }
+//
+//   memcpy(prt->buf, input, need);
+//
+//   short saw_forbid = 0;
+//   for (int i = 0; i < TABLE_SIZE; i++) {
+//     uint64_t m = table[i].mask_value;
+//     if (!(prt->forbid_bitmask & m))
+//       continue;
+//     int cat_id = id_from_cat_bit(m);
+//     int rc = table[i].handler_t(FORBID_FLAG, cat_id, prt);
+//     if (rc == FORBID_VIOLATION) {
+//       saw_forbid = 1;
+//       continue;
+//     }
+//     if (rc != OK)
+//       return rc;
+//   }
+//
+//   if (saw_forbid && !prt->debug) {
+//     return FORBID_VIOLATION;
+//   }
+//
+//   for (int i = 0; i < TABLE_SIZE; i++) {
+//     uint64_t m = table[i].mask_value;
+//     if (!((prt->redact_bitmask | prt->append_bitmask) & m))
+//       continue;
+//     int cat_id = id_from_cat_bit(m);
+//
+//     if (prt->redact_bitmask & m) {
+//       int rc = table[i].handler_t(REDACT_FLAG, cat_id, prt);
+//       if (rc != OK)
+//         return rc;
+//     }
+//     if (prt->append_bitmask & m) {
+//       int rc = table[i].handler_t(APPEND_FLAG, cat_id, prt);
+//       if (rc != OK)
+//         return rc;
+//     }
+//   }
+//
+//   if (saw_forbid)
+//     return FORBID_VIOLATION;
+//
+//   return OK;
+// }
+//
+
 int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
   if (!input)
     return ERROR;
+
+  prt->det_len = 0;
 
   memset(prt->counts, 0, sizeof prt->counts);
   memset(prt->total_by_action, 0, sizeof prt->total_by_action);
@@ -60,18 +171,38 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
   memcpy(prt->buf, input, need);
 
   short saw_forbid = 0;
+
   for (int i = 0; i < TABLE_SIZE; i++) {
     uint64_t m = table[i].mask_value;
     if (!(prt->forbid_bitmask & m))
       continue;
+
     int cat_id = id_from_cat_bit(m);
-    int rc = table[i].handler_t(FORBID_FLAG, cat_id, prt);
-    if (rc == FORBID_VIOLATION) {
+
+    int rc = OK;
+    DetectorResult dr = eval_legacy_detector(
+        COUNTS_FORBID, cat_id, prt, table[i].handler_t, FORBID_FLAG, &rc);
+
+    if (push_detector_log(&prt->det_logs, &prt->det_len, &prt->det_cap,
+                          COUNTS_FORBID, dr) != OK) {
+      return ERROR;
+    }
+
+    if (prt->debug) {
+      fprintf(stderr,
+              "[detector] FORBID cat_id=%d backend=%d score=%.2f thr=%.2f "
+              "matched=%d rc=%d\n",
+              dr.cat_id, (int)dr.backend, dr.score, dr.threshold, dr.matched,
+              rc);
+    }
+
+    if (rc != OK && rc != FORBID_VIOLATION)
+      return rc;
+
+    if (dr.matched) {
       saw_forbid = 1;
       continue;
     }
-    if (rc != OK)
-      return rc;
   }
 
   if (saw_forbid && !prt->debug) {
@@ -82,15 +213,49 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
     uint64_t m = table[i].mask_value;
     if (!((prt->redact_bitmask | prt->append_bitmask) & m))
       continue;
+
     int cat_id = id_from_cat_bit(m);
 
     if (prt->redact_bitmask & m) {
-      int rc = table[i].handler_t(REDACT_FLAG, cat_id, prt);
+      int rc = OK;
+      DetectorResult dr = eval_legacy_detector(
+          COUNTS_REDACT, cat_id, prt, table[i].handler_t, REDACT_FLAG, &rc);
+
+      if (push_detector_log(&prt->det_logs, &prt->det_len, &prt->det_cap,
+                            COUNTS_REDACT, dr) != OK) {
+        return ERROR;
+      }
+
+      if (prt->debug) {
+        fprintf(stderr,
+                "[detector] REDACT cat_id=%d backend=%d score=%.2f thr=%.2f "
+                "matched=%d rc=%d\n",
+                dr.cat_id, (int)dr.backend, dr.score, dr.threshold, dr.matched,
+                rc);
+      }
+
       if (rc != OK)
         return rc;
     }
+
     if (prt->append_bitmask & m) {
-      int rc = table[i].handler_t(APPEND_FLAG, cat_id, prt);
+      int rc = OK;
+      DetectorResult dr = eval_legacy_detector(
+          COUNTS_APPEND, cat_id, prt, table[i].handler_t, APPEND_FLAG, &rc);
+
+      if (push_detector_log(&prt->det_logs, &prt->det_len, &prt->det_cap,
+                            COUNTS_APPEND, dr) != OK) {
+        return ERROR;
+      }
+
+      if (prt->debug) {
+        fprintf(stderr,
+                "[detector] APPEND cat_id=%d backend=%d score=%.2f thr=%.2f "
+                "matched=%d rc=%d\n",
+                dr.cat_id, (int)dr.backend, dr.score, dr.threshold, dr.matched,
+                rc);
+      }
+
       if (rc != OK)
         return rc;
     }

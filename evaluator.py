@@ -1,5 +1,4 @@
 import csv, json, subprocess
-from collections import defaultdict
 
 EXEC   = "./egl"
 POLICY = "examples/eval_policy.egl"
@@ -17,7 +16,7 @@ MAP = {
 ALL = list(MAP.values())
 counts = {cat: {"tp":0, "fp":0, "fn":0, "tn":0} for cat in ALL}
 
-with open("test_datasets/egl_eval.csv") as f:
+with open("test_datasets/eval.csv") as f:
     reader = csv.DictReader(f)
     for row in reader:
         text = row["text"]
@@ -34,8 +33,6 @@ with open("test_datasets/egl_eval.csv") as f:
                 if cat in expected and cat in got:
                     counts[cat]["tp"] += 1
                 elif cat in expected and cat not in got:
-                    if cat == "ENCOURAGEMENT_TO_SELF_HARM":
-                          print(expected, ": ", out)
                     counts[cat]["fn"] += 1
                 elif cat not in expected and cat in got:
                     counts[cat]["fp"] += 1

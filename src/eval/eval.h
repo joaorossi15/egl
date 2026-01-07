@@ -13,6 +13,8 @@
 #define ERROR -1
 #define FORBID_VIOLATION -2
 
+enum { COUNTS_FORBID = 0, COUNTS_REDACT = 1, COUNTS_APPEND = 2, COUNTS_MAX };
+
 typedef struct {
   uint32_t mask_value;
   int (*handler_t)(int, int, PolicyRunTime *);

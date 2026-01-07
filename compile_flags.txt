@@ -2,6 +2,7 @@
 -Isrc/lex
 -Isrc/parser
 -Isrc/runtime
+-Isrc/eval
 -std=c11
 -Wall
 -Wextra

@@ -1,4 +1,4 @@
 @debug
 policy my_policy(post):
-    forbid: username
+    redact: email "*"
 end
