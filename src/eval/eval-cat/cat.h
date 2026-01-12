@@ -12,4 +12,5 @@ int handler_device_id(int flag, int cat_id, PolicyRunTime *prt);
 int handler_online_id(int flag, int cat_id, PolicyRunTime *prt);
 
 int handler_self_harm(int flag, int cat_id, PolicyRunTime *prt);
+int handler_hate_speech(int flag, int cat_id, PolicyRunTime *prt);
 #endif

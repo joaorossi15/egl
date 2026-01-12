@@ -77,12 +77,12 @@ static int py_self_harm_score(const char *py_bin, const char *py_script,
   return OK;
 }
 
-int handler_self_harm(int flag, int cat_id, PolicyRunTime *prt) {
+int handler_hate_speech(int flag, int cat_id, PolicyRunTime *prt) {
   if (!prt || !prt->buf)
     return ERROR;
 
   const char *py_bin = "python3";
-  const char *py_script = "src/eval/scripts/self_harm_score.py";
+  const char *py_script = "src/eval/scripts/hate_speech_score.py";
 
   float thr = (prt->aggr) ? 0.7f : 0.85f;
 
@@ -92,7 +92,7 @@ int handler_self_harm(int flag, int cat_id, PolicyRunTime *prt) {
     return ERROR;
 
   prt->last_cat_id = cat_id;
-  prt->last_backend = DET_BACKEND_HYBRID;
+  prt->last_backend = DET_BACKEND_PROBABILISTIC;
   prt->last_score = score;
   prt->last_threshold = thr;
 

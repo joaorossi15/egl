@@ -1,5 +1,5 @@
 @debug
 @aggressive
 policy my_policy(pre, post):
-    forbid: self_harm
+    forbid: self_harm, discrimination
 end

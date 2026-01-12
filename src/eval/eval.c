@@ -31,7 +31,7 @@ TableEntry table[32] = {
     {DEVICE_ID, handler_device_id},
     // {LOCATION, handler_location},
     // {NON_MALEFICENCE, handle_non_maleficence},
-    // {HATE_SPEECH, handle_hate_speech},
+    {HATE_SPEECH, handler_hate_speech},
     {SELF_HARM_ENCOURAGEMENT, handler_self_harm},
     // {DANGEROUS_INSTRUCTIONS, handler_di},
     // {MEDICAL_RISK, handler_mr},
