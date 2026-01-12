@@ -27,12 +27,11 @@
 
 // non-maleficence
 #define NON_MALEFICENCE (1ULL << 15)
-// discrimination subcategories mask
-#define HATE_SPEECH (1ULL << 16)
-#define STEREOTYPING (1ULL << 17)
+// discrimination subcates: hate speech, stereotyping mask
+#define DISCRIMINATION (1ULL << 16) // ok
 
 // bodily harm subcategories mask
-#define SELF_HARM_ENCOURAGEMENT (1ULL << 18)
+#define SELF_HARM_ENCOURAGEMENT (1ULL << 18) // ok
 
 #define DANGEROUS_INSTRUCTIONS (1ULL << 19)
 #define VIOLENT_INST (1ULL << 20)

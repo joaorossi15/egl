@@ -286,7 +286,7 @@ static const char *cat_name(int id) {
   case 15:
     return "non-maleficence";
   case 16:
-    return "hate_speech";
+    return "discrimination";
   case 18:
     return "self_harm";
   case 19:
