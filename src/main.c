@@ -147,8 +147,6 @@ int main(int argc, char **argv) {
       if (p.errors[j])
         fprintf(stderr, "%s\n", p.errors[j]);
     }
-    // You can decide whether parse errors should hard-fail:
-    // free_program(&prog); free(buf); return -1;
   }
 
   PolicyRunTime prt = (PolicyRunTime){0};

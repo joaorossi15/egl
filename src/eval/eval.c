@@ -43,8 +43,16 @@ eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
                      int *out_rc) {
   DetectorResult dr;
   dr.cat_id = cat_id;
+
   dr.backend = DET_BACKEND_DETERMINISTIC;
   dr.threshold = detector_default_threshold(cat_id);
+  dr.score = 0.0f;
+  dr.matched = 0;
+
+  prt->last_cat_id = cat_id;
+  prt->last_backend = DET_BACKEND_DETERMINISTIC;
+  prt->last_score = 0.0f;
+  prt->last_threshold = dr.threshold;
 
   long before = prt->counts[action_idx][cat_id];
 
@@ -56,8 +64,15 @@ eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
 
   int hit = (after > before);
 
-  dr.score = hit ? 1.0f : 0.0f;
-  dr.matched = (dr.score >= dr.threshold);
+  if (prt->last_cat_id == cat_id) {
+    dr.backend = prt->last_backend;
+    dr.score = prt->last_score;
+    dr.threshold = prt->last_threshold;
+  } else {
+    dr.score = hit ? 1.0f : 0.0f;
+  }
+
+  dr.matched = hit ? 1 : 0;
 
   return dr;
 }
@@ -67,83 +82,27 @@ static int push_detector_log(DetectorLog **arr, size_t *len, size_t *cap,
   if (*len >= *cap) {
     size_t new_cap = (*cap == 0) ? 16 : (*cap * 2);
     void *p = realloc(*arr, new_cap * sizeof(**arr));
+
     if (!p)
       return ERROR;
+
     *arr = (DetectorLog *)p;
     *cap = new_cap;
   }
+
   (*arr)[*len].action_idx = action_idx;
   (*arr)[*len].dr = dr;
   (*len)++;
+
   return OK;
 }
 
-// int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
-//   if (!input)
-//     return ERROR;
-//
-//   memset(prt->counts, 0, sizeof prt->counts);
-//   memset(prt->total_by_action, 0, sizeof prt->total_by_action);
-//
-//   size_t len = strlen(input);
-//   size_t need = len + 1;
-//
-//   if (prt->buf == NULL || prt->buf_cap < need) {
-//     size_t cap = prt->buf_cap ? prt->buf_cap : 64;
-//     while (cap < need)
-//       cap *= 2;
-//     char *new_block = realloc(prt->buf, cap);
-//     if (!new_block)
-//       return ERROR;
-//     prt->buf = new_block;
-//     prt->buf_cap = cap;
-//   }
-//
-//   memcpy(prt->buf, input, need);
-//
-//   short saw_forbid = 0;
-//   for (int i = 0; i < TABLE_SIZE; i++) {
-//     uint64_t m = table[i].mask_value;
-//     if (!(prt->forbid_bitmask & m))
-//       continue;
-//     int cat_id = id_from_cat_bit(m);
-//     int rc = table[i].handler_t(FORBID_FLAG, cat_id, prt);
-//     if (rc == FORBID_VIOLATION) {
-//       saw_forbid = 1;
-//       continue;
-//     }
-//     if (rc != OK)
-//       return rc;
-//   }
-//
-//   if (saw_forbid && !prt->debug) {
-//     return FORBID_VIOLATION;
-//   }
-//
-//   for (int i = 0; i < TABLE_SIZE; i++) {
-//     uint64_t m = table[i].mask_value;
-//     if (!((prt->redact_bitmask | prt->append_bitmask) & m))
-//       continue;
-//     int cat_id = id_from_cat_bit(m);
-//
-//     if (prt->redact_bitmask & m) {
-//       int rc = table[i].handler_t(REDACT_FLAG, cat_id, prt);
-//       if (rc != OK)
-//         return rc;
-//     }
-//     if (prt->append_bitmask & m) {
-//       int rc = table[i].handler_t(APPEND_FLAG, cat_id, prt);
-//       if (rc != OK)
-//         return rc;
-//     }
-//   }
-//
-//   if (saw_forbid)
-//     return FORBID_VIOLATION;
-//
-//   return OK;
-// }
-//
+static inline void reset_last_detector(PolicyRunTime *prt, int cat_id) {
+  prt->last_cat_id = cat_id;
+  prt->last_backend = DET_BACKEND_DETERMINISTIC;
+  prt->last_score = 0.0f;
+  prt->last_threshold = detector_default_threshold(cat_id);
+}
 
 int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
   if (!input)
@@ -178,6 +137,7 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
       continue;
 
     int cat_id = id_from_cat_bit(m);
+    reset_last_detector(prt, cat_id);
 
     int rc = OK;
     DetectorResult dr = eval_legacy_detector(
@@ -214,9 +174,9 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
     if (!((prt->redact_bitmask | prt->append_bitmask) & m))
       continue;
 
-    int cat_id = id_from_cat_bit(m);
-
     if (prt->redact_bitmask & m) {
+      int cat_id = id_from_cat_bit(m);
+      reset_last_detector(prt, cat_id);
       int rc = OK;
       DetectorResult dr = eval_legacy_detector(
           COUNTS_REDACT, cat_id, prt, table[i].handler_t, REDACT_FLAG, &rc);
@@ -239,6 +199,8 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
     }
 
     if (prt->append_bitmask & m) {
+      int cat_id = id_from_cat_bit(m);
+      reset_last_detector(prt, cat_id);
       int rc = OK;
       DetectorResult dr = eval_legacy_detector(
           COUNTS_APPEND, cat_id, prt, table[i].handler_t, APPEND_FLAG, &rc);

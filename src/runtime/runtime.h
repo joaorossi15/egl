@@ -59,6 +59,11 @@ typedef struct {
   size_t det_len;
   size_t det_cap;
 
+  DetectorBackend last_backend;
+  float last_score;
+  float last_threshold;
+  int last_cat_id;
+
 } PolicyRunTime;
 
 int compile_policy(Program *p, PolicyRunTime *prt);
