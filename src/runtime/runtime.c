@@ -42,17 +42,27 @@ static inline int cat_id_from_sv(StrView id) {
     return 12;
   // if (sv_eq_cstr(id, "location"))
   //   return 13;
-  if (sv_eq_cstr(id, "non_maleficence"))
-    return 15;
+  // if (sv_eq_cstr(id, "non_maleficence"))
+  //  return 15;
   if (sv_eq_cstr(id, "discrimination"))
     return 16;
   if (sv_eq_cstr(id, "self_harm"))
     return 18;
-  // if (sv_eq_cstr(id, "dangerous_instructions"))
-  //   return 19;
+  if (sv_eq_cstr(id, "dangerous_instructions"))
+    return 19;
   // if (sv_eq_cstr(id, "medical_risk"))
   //   return 21;
   return -1;
+}
+
+int cat_id_from_cstr(const char *s) {
+  if (!s)
+    return -1;
+
+  StrView sv;
+  sv.ptr = s;
+  sv.len = strlen(s);
+  return cat_id_from_sv(sv);
 }
 
 int extract_forbid(const Node *n, PolicyRunTime *prt) {

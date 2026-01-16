@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 
-DEFAULT_MODEL = "cardiffnlp/twitter-roberta-base-hate-latest"  
+DEFAULT_MODEL = "patrickquick/BERTicelli"
 
 def pick_label_score(scores, prefer=None):
     if not scores:
@@ -61,17 +61,12 @@ def main():
         )
 
         out = clf(text)
-        # normalize
         if isinstance(out, list) and out and isinstance(out[0], list):
             scores = out[0]
         elif isinstance(out, list):
             scores = out
         else:
             scores = []
-
-        if args.debug:
-            print(f"[py] model={args.model}", file=sys.stderr)
-            print(f"[py] scores={scores}", file=sys.stderr)
 
         score = pick_label_score(scores, prefer=args.prefer_label)
         print(f"{float(score):.6f}")

@@ -8,9 +8,9 @@
 #include <string.h>
 #include <unistd.h>
 
-static int py_self_harm_score(const char *py_bin, const char *py_script,
-                              const char *text, const char *model_opt,
-                              int debug, float *out_score) {
+static int py_di_score(const char *py_bin, const char *py_script,
+                       const char *text, const char *model_opt, int debug,
+                       float *out_score) {
   if (!py_bin || !py_script || !text || !out_score)
     return ERROR;
 
@@ -84,12 +84,12 @@ static int py_self_harm_score(const char *py_bin, const char *py_script,
   return OK;
 }
 
-int handler_self_harm(int flag, int cat_id, PolicyRunTime *prt) {
+int handler_di(int flag, int cat_id, PolicyRunTime *prt) {
   if (!prt || !prt->buf)
     return ERROR;
 
   const char *py_bin = "python3";
-  const char *py_script = "src/eval/scripts/self_harm_score.py";
+  const char *py_script = "src/eval/scripts/di_score.py";
 
   float thr = -1.0;
   if (prt->det_threshold[cat_id] >= 0.0f) {
@@ -104,8 +104,8 @@ int handler_self_harm(int flag, int cat_id, PolicyRunTime *prt) {
   }
 
   float score = 0.0f;
-  int rc = py_self_harm_score(py_bin, py_script, prt->buf, model_opt,
-                              prt->debug, &score);
+  int rc =
+      py_di_score(py_bin, py_script, prt->buf, model_opt, prt->debug, &score);
   if (rc != OK)
     return ERROR;
 

@@ -33,7 +33,7 @@ TableEntry table[32] = {
     // {NON_MALEFICENCE, handle_non_maleficence},
     {DISCRIMINATION, handler_hate_speech},
     {SELF_HARM_ENCOURAGEMENT, handler_self_harm},
-    // {DANGEROUS_INSTRUCTIONS, handler_di},
+    {DANGEROUS_INSTRUCTIONS, handler_di},
     // {MEDICAL_RISK, handler_mr},
 };
 
@@ -61,18 +61,25 @@ eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
     *out_rc = rc;
 
   long after = prt->counts[action_idx][cat_id];
-
   int hit = (after > before);
 
   if (prt->last_cat_id == cat_id) {
     dr.backend = prt->last_backend;
+
+    float thr = prt->last_threshold;
+    if (!(thr > 0.0f) || thr > 1.0f) {
+      thr = detector_default_threshold(cat_id);
+    }
+
     dr.score = prt->last_score;
-    dr.threshold = prt->last_threshold;
+    dr.threshold = thr;
   } else {
     dr.score = hit ? 1.0f : 0.0f;
+    dr.threshold = detector_default_threshold(cat_id);
+    dr.backend = DET_BACKEND_DETERMINISTIC;
   }
 
-  dr.matched = hit ? 1 : 0;
+  dr.matched = (dr.score >= dr.threshold) ? 1 : 0;
 
   return dr;
 }
@@ -101,7 +108,7 @@ static inline void reset_last_detector(PolicyRunTime *prt, int cat_id) {
   prt->last_cat_id = cat_id;
   prt->last_backend = DET_BACKEND_DETERMINISTIC;
   prt->last_score = 0.0f;
-  prt->last_threshold = detector_default_threshold(cat_id);
+  prt->last_threshold = -1.0f;
 }
 
 int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
@@ -149,11 +156,11 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
     }
 
     if (prt->debug) {
+      const char *model =
+          prt->det_model[dr.cat_id][0] ? prt->det_model[dr.cat_id] : "default";
       fprintf(stderr,
-              "[detector] FORBID cat_id=%d backend=%d score=%.2f thr=%.2f "
-              "matched=%d rc=%d\n",
-              dr.cat_id, (int)dr.backend, dr.score, dr.threshold, dr.matched,
-              rc);
+              "[detector] model=%s cat_id=%d score=%.6f thr=%.6f matched=%d\n",
+              model, dr.cat_id, dr.score, dr.threshold, dr.matched);
     }
 
     if (rc != OK && rc != FORBID_VIOLATION)
@@ -187,11 +194,13 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
       }
 
       if (prt->debug) {
-        fprintf(stderr,
-                "[detector] REDACT cat_id=%d backend=%d score=%.2f thr=%.2f "
-                "matched=%d rc=%d\n",
-                dr.cat_id, (int)dr.backend, dr.score, dr.threshold, dr.matched,
-                rc);
+        const char *model = prt->det_model[dr.cat_id][0]
+                                ? prt->det_model[dr.cat_id]
+                                : "default";
+        fprintf(
+            stderr,
+            "[detector] model=%s cat_id=%d score=%.6f thr=%.6f matched=%d\n",
+            model, dr.cat_id, dr.score, dr.threshold, dr.matched);
       }
 
       if (rc != OK)
@@ -211,11 +220,13 @@ int evaluate_rt_obj(PolicyRunTime *prt, char *input) {
       }
 
       if (prt->debug) {
-        fprintf(stderr,
-                "[detector] APPEND cat_id=%d backend=%d score=%.2f thr=%.2f "
-                "matched=%d rc=%d\n",
-                dr.cat_id, (int)dr.backend, dr.score, dr.threshold, dr.matched,
-                rc);
+        const char *model = prt->det_model[dr.cat_id][0]
+                                ? prt->det_model[dr.cat_id]
+                                : "default";
+        fprintf(
+            stderr,
+            "[detector] model=%s cat_id=%d score=%.6f thr=%.6f matched=%d\n",
+            model, dr.cat_id, dr.score, dr.threshold, dr.matched);
       }
 
       if (rc != OK)

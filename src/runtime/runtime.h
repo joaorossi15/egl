@@ -64,7 +64,11 @@ typedef struct {
   float last_threshold;
   int last_cat_id;
 
+  float det_threshold[MAX_CATS];
+  char det_model[MAX_CATS][512];
+
 } PolicyRunTime;
 
 int compile_policy(Program *p, PolicyRunTime *prt);
+int cat_id_from_cstr(const char *s);
 #endif

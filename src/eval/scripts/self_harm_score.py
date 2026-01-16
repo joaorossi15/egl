@@ -29,7 +29,7 @@ ENCOURAGE_CUES = [
     r"\bgo\s+(and\s+)?\b",
 ]
 
-DEFAULT_MODEL = "sentinet/suicidality" # it can be changed, deppends on end user needs
+DEFAULT_MODEL = "sentinet/suicidality" 
 
 def encourage_score(text: str) -> float:
     t = text.lower()
@@ -85,10 +85,6 @@ def main() -> int:
         print("0.0")   
         return 0
 
-    if args.debug:
-        print(f"[py] LEN={len(text)}", file=sys.stderr)
-        print(f"[py] TEXT_PREVIEW={repr(text[:200])}", file=sys.stderr)
-        print(f"[py] MODEL={args.model}", file=sys.stderr)
 
     if not text:
         print("0.0")
@@ -124,10 +120,6 @@ def main() -> int:
             scores = out
         else:
             scores = []
-
-        if args.debug:
-            print(f"[py] RAW={out}", file=sys.stderr)
-            print(f"[py] SCORES={scores}", file=sys.stderr)
 
         topic_score = pick_positive_score(scores, args.pos_label)
         e_score = encourage_score(text)

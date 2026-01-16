@@ -8,12 +8,13 @@
 #include <string.h>
 #include <unistd.h>
 
-static int py_self_harm_score(const char *py_bin, const char *py_script,
-                              const char *text, float *out_score) {
+static int py_hate_speech_score(const char *py_bin, const char *py_script,
+                                const char *text, const char *model_opt,
+                                int debug, float *out_score) {
   if (!py_bin || !py_script || !text || !out_score)
     return ERROR;
 
-  char in_path[] = "/tmp/egl_selfharm_XXXXXX";
+  char in_path[] = "/tmp/egl_hate_speech_XXXXXX";
   int fd = mkstemp(in_path);
   if (fd < 0) {
     fprintf(stderr, "[py] mkstemp failed\n");
@@ -28,13 +29,20 @@ static int py_self_harm_score(const char *py_bin, const char *py_script,
     return ERROR;
   }
 
-  // write input payload
   fputs(text, in);
   fputc('\n', in);
   fclose(in);
 
-  char cmd[1300];
-  snprintf(cmd, sizeof(cmd), "%s %s --in %s", py_bin, py_script, in_path);
+  char cmd[1600];
+
+  if (model_opt && model_opt[0]) {
+    printf("\n\n\n\naaaaaaaaaaaaaaaaaaaaaaaaaaaa\n\n\n\n\n\n\n");
+    snprintf(cmd, sizeof(cmd), "%s %s --in %s --model \"%s\"%s", py_bin,
+             py_script, in_path, model_opt, debug ? " --debug" : "");
+  } else {
+    snprintf(cmd, sizeof(cmd), "%s %s --in %s%s", py_bin, py_script, in_path,
+             debug ? " --debug" : "");
+  }
 
   FILE *fp = popen(cmd, "r");
   if (!fp) {
@@ -84,10 +92,21 @@ int handler_hate_speech(int flag, int cat_id, PolicyRunTime *prt) {
   const char *py_bin = "python3";
   const char *py_script = "src/eval/scripts/hate_speech_score.py";
 
-  float thr = (prt->aggr) ? 0.7f : 0.85f;
+  float thr = -1.0;
+  if (prt->det_threshold[cat_id] >= 0.0f) {
+    thr = prt->det_threshold[cat_id];
+  } else {
+    thr = (prt->aggr) ? 0.7f : 0.85f;
+  }
+
+  const char *model_opt = NULL;
+  if (prt->det_model[cat_id][0]) {
+    model_opt = prt->det_model[cat_id];
+  }
 
   float score = 0.0f;
-  int rc = py_self_harm_score(py_bin, py_script, prt->buf, &score);
+  int rc = py_hate_speech_score(py_bin, py_script, prt->buf, model_opt,
+                                prt->debug, &score);
   if (rc != OK)
     return ERROR;
 

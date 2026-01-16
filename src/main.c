@@ -9,6 +9,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int apply_detector_pragma_cb(const char *category, const char *model,
+                                    float threshold, void *ctx) {
+  PolicyRunTime *prt = (PolicyRunTime *)ctx;
+  if (!prt || !category || !category[0])
+    return 1;
+
+  int cat_id = cat_id_from_cstr(category);
+  if (cat_id < 0 || cat_id >= MAX_CATS) {
+    fprintf(stderr, "[pragma] @detector: unknown category '%s'\n", category);
+    return 1;
+  }
+
+  if (model && model[0]) {
+    strncpy(prt->det_model[cat_id], model, sizeof(prt->det_model[cat_id]) - 1);
+    prt->det_model[cat_id][sizeof(prt->det_model[cat_id]) - 1] = '\0';
+  }
+
+  if (threshold >= 0.0f) {
+    prt->det_threshold[cat_id] = threshold;
+  }
+
+  return 0;
+}
+
 char *read_file(const char *path) {
   FILE *f = fopen(path, "rb");
   if (!f) {
@@ -21,26 +45,23 @@ char *read_file(const char *path) {
   }
 
   int size = ftell(f);
-
   if (size < 0) {
     fclose(f);
     return NULL;
   }
 
-  // return fp to start
   if (fseek(f, 0, SEEK_SET) != 0) {
     fclose(f);
     return NULL;
   }
 
-  char *buf = (char *)malloc(size);
-
+  char *buf = (char *)malloc((size_t)size + 1);
   if (!buf) {
     fclose(f);
     return NULL;
   }
 
-  size_t n = fread(buf, 1, size, f);
+  size_t n = fread(buf, 1, (size_t)size, f);
   if ((int)n != size) {
     free(buf);
     fclose(f);
@@ -50,41 +71,6 @@ char *read_file(const char *path) {
   fclose(f);
   buf[size] = '\0';
   return buf;
-}
-
-const char *token_type_to_string(TokenType type) {
-  switch (type) {
-  case POLICY:
-    return "POLICY";
-  case END:
-    return "END";
-  case REFUSAL:
-    return "REFUSAL";
-  case APPEND:
-    return "APPEND";
-  case REDACT:
-    return "REDACT";
-  case FORBID:
-    return "FORBID";
-  case TEXT:
-    return "TEXT";
-  case IDENTIFIER:
-    return "IDENTIFIER";
-  case COMMA:
-    return "COMMA";
-  case L_PAR:
-    return "L_PAR";
-  case R_PAR:
-    return "R_PAR";
-  case EQUALS:
-    return "EQUALS";
-  case ENDOF:
-    return "ENDOF";
-  case STR:
-    return "STR";
-  default:
-    return "UNKNOWN";
-  }
 }
 
 int main(int argc, char **argv) {
@@ -156,6 +142,13 @@ int main(int argc, char **argv) {
     free(buf);
     return -1;
   }
+
+  for (int c = 0; c < MAX_CATS; c++) {
+    prt.det_model[c][0] = '\0';
+    prt.det_threshold[c] = -1.0f;
+  }
+
+  scan_detector_pragmas(buf, apply_detector_pragma_cb, &prt);
 
   prt.debug = is_debug_on;
   prt.aggr = is_aggressive_on;
