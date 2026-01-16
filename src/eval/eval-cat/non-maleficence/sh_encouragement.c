@@ -10,7 +10,7 @@
 
 static int py_self_harm_score(const char *py_bin, const char *py_script,
                               const char *text, const char *model_opt,
-                              int debug, float *out_score) {
+                              float *out_score) {
   if (!py_bin || !py_script || !text || !out_score)
     return ERROR;
 
@@ -36,11 +36,10 @@ static int py_self_harm_score(const char *py_bin, const char *py_script,
   char cmd[1600];
 
   if (model_opt && model_opt[0]) {
-    snprintf(cmd, sizeof(cmd), "%s %s --in %s --model \"%s\"%s", py_bin,
-             py_script, in_path, model_opt, debug ? " --debug" : "");
+    snprintf(cmd, sizeof(cmd), "%s %s --in %s --model \"%s\"", py_bin,
+             py_script, in_path, model_opt);
   } else {
-    snprintf(cmd, sizeof(cmd), "%s %s --in %s%s", py_bin, py_script, in_path,
-             debug ? " --debug" : "");
+    snprintf(cmd, sizeof(cmd), "%s %s --in %s", py_bin, py_script, in_path);
   }
 
   FILE *fp = popen(cmd, "r");
@@ -104,8 +103,7 @@ int handler_self_harm(int flag, int cat_id, PolicyRunTime *prt) {
   }
 
   float score = 0.0f;
-  int rc = py_self_harm_score(py_bin, py_script, prt->buf, model_opt,
-                              prt->debug, &score);
+  int rc = py_self_harm_score(py_bin, py_script, prt->buf, model_opt, &score);
   if (rc != OK)
     return ERROR;
 

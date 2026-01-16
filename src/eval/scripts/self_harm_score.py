@@ -74,7 +74,6 @@ def main() -> int:
     ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--pos-label", default=None)
     ap.add_argument("--max-length", type=int, default=256)
-    ap.add_argument("--debug", action="store_true")
     args = ap.parse_args()
 
     try:
@@ -96,8 +95,7 @@ def main() -> int:
     try:
         from transformers import pipeline  
     except Exception as e:
-        if args.debug:
-            print(f"[py] transformers import failed: {e}", file=sys.stderr)
+        print(f"[py] transformers import failed: {e}", file=sys.stderr)
         print("0.0")
         return 0
 
@@ -128,8 +126,7 @@ def main() -> int:
         return 0
 
     except Exception as e:
-        if args.debug:
-            print(f"[py] inference failed: {e}", file=sys.stderr)
+        print(f"[py] inference failed: {e}", file=sys.stderr)
         print("0.0")
         return 0
 

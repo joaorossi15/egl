@@ -78,7 +78,6 @@ def main() -> int:
     ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--pos-label", default=None)
     ap.add_argument("--max-length", type=int, default=256)
-    ap.add_argument("--debug", action="store_true")
     ap.add_argument("--hybrid", action="store_true",
                     help="max(model_score, heuristic_instruction_score)")
     args = ap.parse_args()
@@ -86,8 +85,7 @@ def main() -> int:
     try:
         text = open(args.infile, "r", encoding="utf-8", errors="ignore").read().strip()
     except Exception as e:
-        if args.debug:
-            print(f"[py] read failed: {e}", file=sys.stderr)
+        print(f"[py] read failed: {e}", file=sys.stderr)
         print("0.0")
         return 0
 
@@ -103,8 +101,7 @@ def main() -> int:
         from transformers.utils import logging as hf_logging
         hf_logging.set_verbosity_error()
     except Exception as e:
-        if args.debug:
-            print(f"[py] transformers import failed: {e}", file=sys.stderr)
+        print(f"[py] transformers import failed: {e}", file=sys.stderr)
         if args.hybrid:
             score = heuristic_instruction_score(text)
             print(f"{score:.6f}")
@@ -136,8 +133,7 @@ def main() -> int:
         model_score = pick_positive_score(scores, args.pos_label)
 
     except Exception as e:
-        if args.debug:
-            print(f"[py] inference failed: {e}", file=sys.stderr)
+        print(f"[py] inference failed: {e}", file=sys.stderr)
         model_score = 0.0
 
     if args.hybrid:
