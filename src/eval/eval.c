@@ -41,7 +41,7 @@ static inline DetectorResult
 eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
                      int (*handler)(int, int, PolicyRunTime *), int flag,
                      int *out_rc) {
-  DetectorResult dr;
+  DetectorResult dr = {0};
   dr.cat_id = cat_id;
 
   dr.backend = DET_BACKEND_DETERMINISTIC;
@@ -52,7 +52,7 @@ eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
   prt->last_cat_id = cat_id;
   prt->last_backend = DET_BACKEND_DETERMINISTIC;
   prt->last_score = 0.0f;
-  prt->last_threshold = dr.threshold;
+  prt->last_threshold = -1.0f;
 
   long before = prt->counts[action_idx][cat_id];
 
@@ -63,7 +63,8 @@ eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
   long after = prt->counts[action_idx][cat_id];
   int hit = (after > before);
 
-  if (prt->last_cat_id == cat_id) {
+  if (prt->last_cat_id == cat_id &&
+      prt->last_backend != DET_BACKEND_DETERMINISTIC) {
     dr.backend = prt->last_backend;
 
     float thr = prt->last_threshold;
@@ -73,14 +74,14 @@ eval_legacy_detector(int action_idx, int cat_id, PolicyRunTime *prt,
 
     dr.score = prt->last_score;
     dr.threshold = thr;
-  } else {
-    dr.score = hit ? 1.0f : 0.0f;
-    dr.threshold = detector_default_threshold(cat_id);
-    dr.backend = DET_BACKEND_DETERMINISTIC;
+    dr.matched = (dr.score >= dr.threshold) ? 1 : 0;
+    return dr;
   }
 
-  dr.matched = (dr.score >= dr.threshold) ? 1 : 0;
-
+  dr.backend = DET_BACKEND_DETERMINISTIC;
+  dr.threshold = detector_default_threshold(cat_id);
+  dr.score = hit ? 1.0f : 0.0f;
+  dr.matched = hit ? 1 : 0;
   return dr;
 }
 

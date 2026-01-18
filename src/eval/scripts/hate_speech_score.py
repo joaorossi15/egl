@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 
-DEFAULT_MODEL = "patrickquick/BERTicelli"
+DEFAULT_MODEL = "sadjava/multilingual-hate-speech-xlm-roberta"
 
 def pick_label_score(scores, prefer=None):
     if not scores:

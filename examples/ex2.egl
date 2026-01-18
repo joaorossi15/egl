@@ -1,4 +1,4 @@
 @debug
-policy my_policy(post):
-    redact: email "*"
+policy redact_email(post):
+  append: email "There is an email on this message."
 end
