@@ -1,0 +1,4 @@
+@debug
+policy my_policy(pre, post):
+    forbid: self_harm
+end

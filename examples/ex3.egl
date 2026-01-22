@@ -1,0 +1,5 @@
+policy my_policy(pre):
+    forbid: discrimination
+    redact: email "-"
+    append: phone "Invalid phone number."
+end

@@ -33,7 +33,7 @@ TableEntry table[32] = {
     // {NON_MALEFICENCE, handle_non_maleficence},
     {DISCRIMINATION, handler_hate_speech},
     {SELF_HARM_ENCOURAGEMENT, handler_self_harm},
-    {DANGEROUS_INSTRUCTIONS, handler_di},
+    {VIOLENCE, handler_violence},
     // {MEDICAL_RISK, handler_mr},
 };
 

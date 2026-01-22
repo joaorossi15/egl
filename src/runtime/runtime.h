@@ -33,8 +33,7 @@
 // bodily harm subcategories mask
 #define SELF_HARM_ENCOURAGEMENT (1ULL << 18) // ok
 
-#define DANGEROUS_INSTRUCTIONS (1ULL << 19)
-#define VIOLENT_INST (1ULL << 20)
+#define VIOLENCE (1ULL << 19)
 
 // medical risk subcategories mask
 #define MEDICAL_RISK (1ULL << 21)

@@ -1,6 +1,4 @@
-@detector(discrimination, threshold=0.80)
 @debug
 policy my_policy(pre, post):
-    forbid: self_harm, discrimination, dangerous_instructions
-    append: email "*"
+    forbid: self_harm, discrimination, violence
 end

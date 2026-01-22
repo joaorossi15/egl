@@ -24,7 +24,7 @@ typedef struct {
 
 static inline float detector_default_threshold(int cat_id) {
   (void)cat_id;
-  return 0.5f;
+  return 0.75f;
 }
 
 #endif

@@ -1,0 +1,3 @@
+policy redact_online_id(pre):
+    redact: online_id "*"
+end

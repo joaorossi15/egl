@@ -48,7 +48,7 @@ static inline int cat_id_from_sv(StrView id) {
     return 16;
   if (sv_eq_cstr(id, "self_harm"))
     return 18;
-  if (sv_eq_cstr(id, "dangerous_instructions"))
+  if (sv_eq_cstr(id, "violence"))
     return 19;
   // if (sv_eq_cstr(id, "medical_risk"))
   //   return 21;

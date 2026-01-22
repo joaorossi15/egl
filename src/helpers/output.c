@@ -39,12 +39,15 @@ static const char *backend_name(DetectorBackend b) {
 
 static void print_escaped(const char *s, int len) {
   putchar('"');
+
   if (!s || len <= 0) {
     putchar('"');
     return;
   }
+
   for (int i = 0; i < len; i++) {
     unsigned char c = (unsigned char)s[i];
+
     switch (c) {
     case '\n':
       fputs("\\n", stdout);
@@ -55,20 +58,31 @@ static void print_escaped(const char *s, int len) {
     case '\t':
       fputs("\\t", stdout);
       break;
+    case '\b':
+      fputs("\\b", stdout);
+      break;
+    case '\f':
+      fputs("\\f", stdout);
+      break;
     case '\\':
       fputs("\\\\", stdout);
       break;
     case '"':
       fputs("\\\"", stdout);
       break;
+
     default:
-      if (c >= 32 && c < 127) {
-        putchar(c);
+      if (c < 0x20) {
+        printf("\\u%04x", (unsigned)c); // -> \u00XX
+      } else if (c < 0x80) {
+        // ASCII printable
+        putchar((char)c);
       } else {
-        printf("\\x%02X", c);
+        printf("\\u%04x", (unsigned)c);
       }
     }
   }
+
   putchar('"');
 }
 
@@ -290,7 +304,7 @@ static const char *cat_name(int id) {
   case 18:
     return "self_harm";
   case 19:
-    return "dangerous_instructions";
+    return "violence";
   case 21:
     return "medical_risk";
 
@@ -306,27 +320,18 @@ static const char *act_label(int act) {
                       : "act?";
 }
 
-void print_debug_summary(const PolicyRunTime *prt) {
-  if (!prt->debug)
+void print_debug_summary(PolicyRunTime *prt) {
+  if (!prt || !prt->debug)
     return;
 
-  printf("[DEBUG] ");
-  for (int act = 0; act < 3; ++act) {
-    if (prt->total_by_action[act] == 0)
-      continue;
-
-    printf("%s: ", act_label(act));
-    int first = 1;
-    for (int id = 0; id < MAX_CATS; ++id) {
-      int n = prt->counts[act][id];
-      if (n > 0) {
-        if (!first)
-          printf(", ");
-        printf("%s (%d)", cat_name(id), n);
-        first = 0;
+  for (int act = 0; act < 3; act++) {
+    for (int cat = 0; cat < MAX_CATS; cat++) {
+      int count = prt->counts[act][cat];
+      if (count > 0) {
+        fprintf(stderr, "[DEBUG] %s: %s (%d)\n", act_label(act), cat_name(cat),
+                count);
       }
     }
-    putchar('\n');
   }
 }
 
@@ -342,7 +347,9 @@ void print_eval_json(PolicyRunTime *prt, const DetectorLog *det_logs,
   printf("  \"return_code\": %d,\n", return_code);
 
   if (prt->buf && (prt->debug || return_code == OK)) {
-    printf("  \"transformed_text\": \"%s\",\n", prt->buf);
+    printf("  \"transformed_text\": ");
+    print_escaped(prt->buf, (int)strlen(prt->buf));
+    printf(",\n");
   }
 
   if (prt->debug) {
