@@ -170,7 +170,9 @@ int main(int argc, char **argv) {
         print_debug_summary(&prt);
       } else {
         printf("%s\n", prt.buf);
-        print_debug_summary(&prt);
+        if (prt.debug) {
+          print_debug_summary(&prt);
+        }
       }
     }
   }
@@ -182,3 +184,121 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+// int main(int argc, char **argv) {
+//   if (argc < 2) {
+//     printf("Usage: ./egl <file.egl> [flags]\n");
+//     return -1;
+//   }
+//
+//   char *buf = read_file(argv[1]);
+//   if (!buf) {
+//     printf("Could not read file: %s\n", argv[1]);
+//     return -1;
+//   }
+//
+//   int json_mode = 0;
+//
+//   /* parse flags only */
+//   for (int i = 2; i < argc; i++) {
+//     if (strcmp(argv[i], "--json") == 0) {
+//       json_mode = 1;
+//     } else {
+//       fprintf(stderr, "Unknown flag: %s\n", argv[i]);
+//       free(buf);
+//       return -1;
+//     }
+//   }
+//
+//   short is_debug_on = scan_debug_pragma(buf);
+//   short is_aggressive_on = scan_aggressive_pragma(buf);
+//
+//   /* ===== parse policy once ===== */
+//
+//   Lexer l;
+//   Token tk;
+//   init_lex(&l, buf);
+//
+//   Token tks[100];
+//   int ntoks = 0;
+//   do {
+//     tk = new_token(&l);
+//     tks[ntoks++] = tk;
+//   } while (tk.type != ENDOF);
+//
+//   Parser p = (Parser){0};
+//   Program prog = (Program){0};
+//   parse_program(&prog, &p, tks, ntoks);
+//
+//   if (p.e_count != 0) {
+//     for (int j = 0; j < p.e_count; j++) {
+//       if (p.errors[j])
+//         fprintf(stderr, "%s\n", p.errors[j]);
+//     }
+//   }
+//
+//   PolicyRunTime prt = (PolicyRunTime){0};
+//
+//   if (compile_policy(&prog, &prt) != 0) {
+//     free_program(&prog);
+//     free(buf);
+//     return -1;
+//   }
+//
+//   prt.debug = is_debug_on;
+//   prt.aggr = is_aggressive_on;
+//
+//   /* ===== interactive loop ===== */
+//
+//   char input_buf[4096];
+//
+//   printf("EGL interactive mode. Type text and press ENTER (Ctrl+C to quit)\n
+//   ");
+//
+//   while (1) {
+//     printf("> ");
+//     fflush(stdout);
+//
+//     if (!fgets(input_buf, sizeof(input_buf), stdin))
+//       break;
+//
+//     /* remove newline */
+//     input_buf[strcspn(input_buf, "\n")] = '\0';
+//
+//     if (input_buf[0] == '\0')
+//       continue;
+//
+//     int rc = evaluate_rt_obj(&prt, input_buf);
+//
+//     if (rc == ERROR || prt.debug == -1) {
+//       fprintf(stderr, "EVAL ERROR\n");
+//       continue;
+//     }
+//
+//     if (json_mode) {
+//       const char *exec_type = (prt.exec_type == 2)   ? "pre_post"
+//                               : (prt.exec_type == 0) ? "pre"
+//                                                      : "post";
+//
+//       print_eval_json(&prt, prt.det_logs, prt.det_len, exec_type, rc);
+//     } else {
+//       if (rc == FORBID_VIOLATION) {
+//         printf("FORBIDDEN OUTPUT\n");
+//       } else {
+//         printf("%s\n", prt.buf);
+//       }
+//
+//       print_debug_summary(&prt);
+//     }
+//
+//     /* clear detector logs for next iteration */
+//     prt.det_len = 0;
+//   }
+//
+//   free(prt.det_logs);
+//   free(prt.buf);
+//   free_program(&prog);
+//   free(buf);
+//
+//   return 0;
+// }
