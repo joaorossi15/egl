@@ -14,46 +14,40 @@ static inline int sv_eq_cstr(StrView sv, const char *lit) {
 }
 
 static inline int cat_id_from_sv(StrView id) {
-  if (sv_eq_cstr(id, "privacy"))
-    return 0;
-  if (sv_eq_cstr(id, "personal_id"))
-    return 1;
+  // privacy
+  // personal id
   if (sv_eq_cstr(id, "phone"))
-    return 2;
+    return 0;
   if (sv_eq_cstr(id, "email"))
-    return 3;
-  // if (sv_eq_cstr(id, "financial_id"))
-  //   return 5;
+    return 1;
+  // financial id
   if (sv_eq_cstr(id, "credit_card"))
-    return 6;
+    return 2;
   // if (sv_eq_cstr(id, "bank_account"))
-  //   return 7;
+  //   return 3;
   // if (sv_eq_cstr(id, "tax_id"))
-  //   return 8;
-  if (sv_eq_cstr(id, "online_id"))
-    return 9;
-  if (sv_eq_cstr(id, "ip"))
-    return 10;
-  if (sv_eq_cstr(id, "username"))
-    return 11;
-  if (sv_eq_cstr(id, "device_id"))
-    return 12;
-  // if (sv_eq_cstr(id, "location"))
-  //   return 13;
-  // if (sv_eq_cstr(id, "address"))
-  //   return 14;
-  // if (sv_eq_cstr(id, "coordinations"))
   //   return 4;
-  // if (sv_eq_cstr(id, "non_maleficence"))
-  //  return 22;
+  // online id
+  if (sv_eq_cstr(id, "ip"))
+    return 5;
+  if (sv_eq_cstr(id, "username"))
+    return 6;
+  if (sv_eq_cstr(id, "device_id"))
+    return 7;
+  // location
+  if (sv_eq_cstr(id, "address"))
+    return 8;
+  if (sv_eq_cstr(id, "coordinates"))
+    return 9;
+  // non-maleficence
   if (sv_eq_cstr(id, "discrimination"))
-    return 16;
+    return 10;
   if (sv_eq_cstr(id, "self_harm"))
-    return 18;
+    return 11;
   if (sv_eq_cstr(id, "violence"))
-    return 19;
+    return 12;
   // if (sv_eq_cstr(id, "medical_risk"))
-  //   return 21;
+  //   return 13;
   return -1;
 }
 

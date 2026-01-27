@@ -1,4 +1,4 @@
 @debug
 policy redact_email(post):
-  append: email "There is an email on this message."
+  redact: ip "_"
 end

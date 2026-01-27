@@ -313,21 +313,3 @@ int handler_device_id(int flag, int cat_id, PolicyRunTime *prt) {
 
   return OK;
 }
-
-int handler_online_id(int flag, int cat_id, PolicyRunTime *prt) {
-  short saw_forbid = 0;
-  int return_value = 0;
-
-  int (*handlers[3])(int, int, PolicyRunTime *) = {
-      handler_ip, handler_sm_handle, handler_device_id};
-
-  for (int i = 0; i < 3; i++) {
-    return_value = handlers[i](flag, cat_id, prt);
-    if (return_value == ERROR)
-      return ERROR;
-    if (return_value == FORBID_VIOLATION)
-      saw_forbid = 1;
-  }
-
-  return saw_forbid ? FORBID_VIOLATION : return_value;
-}

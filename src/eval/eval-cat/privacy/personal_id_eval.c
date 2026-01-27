@@ -193,20 +193,3 @@ int handler_email(int flag, int cat_id, PolicyRunTime *prt) {
   }
   return OK;
 }
-
-int handler_personal_id(int flag, int cat_id, PolicyRunTime *prt) {
-  short return_value = 0;
-  short saw_forbid = 0;
-
-  return_value = handler_email(flag, cat_id, prt);
-  if (return_value == ERROR)
-    return return_value;
-  else if (return_value == FORBID_VIOLATION)
-    saw_forbid = 1;
-
-  return_value = handler_phone(flag, cat_id, prt);
-
-  if (saw_forbid == 1 && return_value != ERROR)
-    return FORBID_VIOLATION;
-  return return_value;
-}
