@@ -1,0 +1,3 @@
+policy my_policy(pre, post):
+    forbid: credit_card
+end

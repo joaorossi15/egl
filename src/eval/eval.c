@@ -18,18 +18,23 @@ static inline int id_from_cat_bit(int bit) {
 
 TableEntry table[32] = {
     // {PRIVACY, handler_privacy},
+
     {PERSONAL_ID, handler_personal_id},
     {PHONE, handler_phone},
     {EMAIL, handler_email},
-    // {ADDRESS, handler_address},
+
     // {FINANCIAL_ID, handler_financial_id},
-    // {CARD, handler_card},
+    {CARD, handler_card},
     // {BANK_ACCOUNT, handler_bank_account},
-    {ONLINE_ID, handler_online_id},
+
+    {ONLINE_ID, handler_online_id}, // FINISHED
     {IP, handler_ip},
     {HANDLE, handler_sm_handle},
     {DEVICE_ID, handler_device_id},
+
     // {LOCATION, handler_location},
+    //
+
     // {NON_MALEFICENCE, handle_non_maleficence},
     {DISCRIMINATION, handler_hate_speech},
     {SELF_HARM_ENCOURAGEMENT, handler_self_harm},

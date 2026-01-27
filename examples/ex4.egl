@@ -1,3 +1,4 @@
-policy redact_online_id(pre):
-    redact: online_id "*"
+@debug
+policy redact_email(post):
+  append: email "There is an email on this message."
 end

@@ -22,12 +22,10 @@ static inline int cat_id_from_sv(StrView id) {
     return 2;
   if (sv_eq_cstr(id, "email"))
     return 3;
-  // if (sv_eq_cstr(id, "address"))
-  //   return 4;
   // if (sv_eq_cstr(id, "financial_id"))
   //   return 5;
-  // if (sv_eq_cstr(id, "credit_card"))
-  //   return 6;
+  if (sv_eq_cstr(id, "credit_card"))
+    return 6;
   // if (sv_eq_cstr(id, "bank_account"))
   //   return 7;
   // if (sv_eq_cstr(id, "tax_id"))
@@ -42,8 +40,12 @@ static inline int cat_id_from_sv(StrView id) {
     return 12;
   // if (sv_eq_cstr(id, "location"))
   //   return 13;
+  // if (sv_eq_cstr(id, "address"))
+  //   return 14;
+  // if (sv_eq_cstr(id, "coordinations"))
+  //   return 4;
   // if (sv_eq_cstr(id, "non_maleficence"))
-  //  return 15;
+  //  return 22;
   if (sv_eq_cstr(id, "discrimination"))
     return 16;
   if (sv_eq_cstr(id, "self_harm"))

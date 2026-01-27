@@ -292,7 +292,7 @@ static const char *cat_name(int id) {
   case 10:
     return "ip";
   case 11:
-    return "handle";
+    return "username";
   case 12:
     return "device_id";
   case 13:

@@ -1,5 +1,0 @@
-@detector(discrimination, threshold=0.90)
-@aggressive
-policy my_policy(pre, post):
-    forbid: self_harm, discrimination, dangerous_instructions
-end

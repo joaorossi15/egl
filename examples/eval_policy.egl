@@ -1,6 +1,4 @@
 @debug
 policy eval(pre, post)
-    forbid: ip, device_id, self_harm, username
-    redact: email "*"
-    append: phone "phone number..."
+    forbid: ip, device_id, email, phone, username 
 end
