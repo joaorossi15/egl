@@ -1,3 +1,4 @@
+@pattern(tax_id, "test")
 policy my_policy(pre, post):
-    forbid: credit_card
+    forbid: tax_id
 end

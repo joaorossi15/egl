@@ -22,7 +22,7 @@ TableEntry table[32] = {
 
     {CARD, handler_card},
     // {BANK_ACCOUNT, handler_bank_account},
-    // {TAX_ID, handler_tax_id}
+    {TAX_ID, handler_tax_id},
 
     {IP, handler_ip},
     {HANDLE, handler_sm_handle},

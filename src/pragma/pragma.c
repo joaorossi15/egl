@@ -207,3 +207,73 @@ int scan_detector_pragmas(const char *src, detector_pragma_cb cb, void *ctx) {
 
   return n;
 }
+
+int scan_pattern_pragmas(const char *src, detector_pragma_cb cb, void *ctx) {
+  if (!src || !cb)
+    return 0;
+
+  const char *p = src;
+  int n = 0;
+
+  while (*p) {
+    p = skip_ws(p);
+
+    if (strncmp(p, "policy", 6) == 0)
+      break;
+
+    if (strncmp(p, "@pattern", 8) != 0) {
+      const char *nl = strchr(p, '\n');
+      if (!nl)
+        break;
+      p = nl + 1;
+      continue;
+    }
+
+    p += 8;
+    p = skip_ws(p);
+
+    if (*p != '(') {
+      const char *nl = strchr(p, '\n');
+      if (!nl)
+        break;
+      p = nl + 1;
+      continue;
+    }
+    p++;
+    p = skip_ws(p);
+
+    char category[64] = {0};
+    if (!parse_ident(p, category, sizeof(category), &p)) {
+      const char *nl = strchr(p, '\n');
+      if (!nl)
+        break;
+      p = nl + 1;
+      continue;
+    }
+
+    p = skip_ws_commas(p);
+
+    char pattern[256] = {0};
+    if (!parse_quoted_string(p, pattern, sizeof(pattern), &p)) {
+      const char *nl = strchr(p, '\n');
+      if (!nl)
+        break;
+      p = nl + 1;
+      continue;
+    }
+
+    p = skip_ws(p);
+    if (*p == ')')
+      p++;
+
+    if (cb(category, pattern, -1.0f, ctx) == 0)
+      n++;
+
+    const char *nl = strchr(p, '\n');
+    if (!nl)
+      break;
+    p = nl + 1;
+  }
+
+  return n;
+}

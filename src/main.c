@@ -149,6 +149,7 @@ int main(int argc, char **argv) {
   }
 
   scan_detector_pragmas(buf, apply_detector_pragma_cb, &prt);
+  scan_pattern_pragmas(buf, apply_detector_pragma_cb, &prt);
 
   prt.debug = is_debug_on;
   prt.aggr = is_aggressive_on;

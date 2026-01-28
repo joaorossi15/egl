@@ -25,8 +25,8 @@ static inline int cat_id_from_sv(StrView id) {
     return 2;
   // if (sv_eq_cstr(id, "bank_account"))
   //   return 3;
-  // if (sv_eq_cstr(id, "tax_id"))
-  //   return 4;
+  if (sv_eq_cstr(id, "tax_id"))
+    return 4;
   // online id
   if (sv_eq_cstr(id, "ip"))
     return 5;
@@ -35,10 +35,10 @@ static inline int cat_id_from_sv(StrView id) {
   if (sv_eq_cstr(id, "device_id"))
     return 7;
   // location
-  if (sv_eq_cstr(id, "address"))
-    return 8;
-  if (sv_eq_cstr(id, "coordinates"))
-    return 9;
+  // if (sv_eq_cstr(id, "address"))
+  //   return 8;
+  // if (sv_eq_cstr(id, "coordinates"))
+  //   return 9;
   // non-maleficence
   if (sv_eq_cstr(id, "discrimination"))
     return 10;
