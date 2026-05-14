@@ -2,6 +2,10 @@
 
 A simple domain specific-language for ethical guardrails related to modular ethical principles for AI conversations (working with privacy and non-maleficence at the moment).
 
+## NEXT STEPS
+- add soft steering for close models: instruction steering, schema steering, parameter steering, rag steering, repair steering
+- add soft + hard steering for open-weight models: decode steering, activation steering
+
 ## Example EGL Syntax
 ```egl
 policy p1(pre, post):
